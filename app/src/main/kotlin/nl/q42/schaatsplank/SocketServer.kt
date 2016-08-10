@@ -8,35 +8,61 @@ import org.java_websocket.server.WebSocketServer
 import rx.Observable
 import rx.Subscription
 import java.net.InetSocketAddress
-import java.util.*
 
 /**
  * @author Herman Banken, Q42
  */
-class SocketServer(val input: Observable<SensorEvent>): WebSocketServer(InetSocketAddress(8081)) {
-    private val subscriptions: HashMap<WebSocket, Subscription> = HashMap()
+class SocketServer(val input: Observable<SensorEvent>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
+    private var subscription: Subscription? = null
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
-        if(conn == null) return
         Log.i("", "conn: "+conn)
         Log.i("", "handshake: "+handshake)
-        conn.send("welcome")
-        subscriptions.put(conn, input.subscribe {
-            print(""+it)
-        })
+        conn?.send("welcome")
+        if(conn == null) return
+
     }
 
     override fun onClose(conn: WebSocket?, code: Int, reason: String?, remote: Boolean) {
         if(conn == null) return
-        connections().remove(conn)
+    }
+
+    override fun start() {
+        Log.i(javaClass.simpleName, "Start")
+        super.start()
+        ensureSubscribed()
+    }
+
+    override fun run() {
+        Log.i(javaClass.simpleName, "Run")
+        super.run()
+        ensureSubscribed()
+    }
+
+    override fun stop(timeout: Int) {
+        Log.i(javaClass.simpleName, "Stop")
+        subscription?.unsubscribe()
+        subscription = null
+        super.stop(timeout)
+    }
+
+    fun ensureSubscribed() {
+        if(subscription == null) {
+            subscription = input.subscribe({
+                val values = it.values.string()
+                sendToAll(values)
+            }, {
+                Log.e(javaClass.simpleName, "rx error", it)
+            })
+        }
     }
 
     override fun onMessage(conn: WebSocket?, message: String?) {
-        throw UnsupportedOperationException()
+//        throw UnsupportedOperationException()
     }
 
     override fun onError(conn: WebSocket?, ex: Exception?) {
-        throw UnsupportedOperationException()
+//        throw UnsupportedOperationException()
     }
 
     /**
