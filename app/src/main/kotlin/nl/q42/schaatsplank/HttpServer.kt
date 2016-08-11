@@ -29,6 +29,8 @@ class HttpServer(hostname: String, val port: Int, val context: Context): NanoHTT
             return newChunkedResponse(Status.OK, "text/html", context.resources.openRawResource(R.raw.index))
         } else if(session.uri == "/app.js") {
             return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.app))
+        } else if(session.uri == "/smoothie.js") {
+            return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.smoothie))
         } else {
             return newFixedLengthResponse(session.uri)
         }

@@ -10,7 +10,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Schaatsplank">
+        <activity
+            android:name=".Schaatsplank"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

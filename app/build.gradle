@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "23.0.3"
+    buildToolsVersion '23.0.3'
 
     defaultConfig {
         applicationId "nl.q42.schaatsplank"
@@ -21,7 +21,14 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            debuggable true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+        }
+        customDebuggableBuildType {
+            debuggable true
         }
     }
     repositories {
@@ -30,6 +37,14 @@ android {
     lintOptions {
         abortOnError false
     }
+    testOptions.unitTests.all {
+        testLogging {
+            events "passed", "skipped", "failed", "standardOut", "standardError"
+            outputs.upToDateWhen {false}
+            showStandardStreams = true
+        }
+    }
+
 }
 
 buildscript {
@@ -43,8 +58,7 @@ buildscript {
 }
 
 dependencies {
-
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     // Useful Android Kotlin features
@@ -69,4 +83,14 @@ dependencies {
     // HTTP server
     compile 'org.nanohttpd:nanohttpd:2.2.0'
     compile 'org.java-websocket:Java-WebSocket:1.3.0'
+}
+
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat 'full'
+        showCauses true
+        showExceptions true
+        showStackTraces true
+        showStandardStreams true
+    }
 }
