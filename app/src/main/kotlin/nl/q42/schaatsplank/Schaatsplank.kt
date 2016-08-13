@@ -31,17 +31,20 @@ import java.util.concurrent.TimeUnit
  */
 class Schaatsplank: Activity(), SensorEventListener {
     private var sensorManager: SensorManager? = null
-    private var sensor: Sensor? = null
+    private var gravSensor: Sensor? = null
+    private var acclSensor: Sensor? = null
     private var httpServer: HttpServer? = null
     private var socketServer: SocketServer? = null
 
-    private val values: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
+    private val acceleration: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
+    private val gravity: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        sensor = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        acclSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        gravSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
     }
 
     override fun onResume() {
@@ -52,8 +55,9 @@ class Schaatsplank: Activity(), SensorEventListener {
         val ip = wifiInfo.ipAddressString()
 
         Timber.i("SensorManager $sensorManager")
-        Timber.i("Sensor $sensor")
-        sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
+        Timber.i("Sensor $gravSensor")
+        sensorManager?.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_GAME)
+        sensorManager?.registerListener(this, acclSensor, SensorManager.SENSOR_DELAY_GAME)
 
         Thread {
             run {
@@ -74,7 +78,10 @@ class Schaatsplank: Activity(), SensorEventListener {
                     Log.i(javaClass.simpleName, "WS: Trying port $ip:$port")
                     if(available(port, ip)) {
                         Log.i(javaClass.simpleName, "WS: Selected $ip:$port")
-                        socketServer = SocketServer(values.sample(100, TimeUnit.MILLISECONDS).subscribeOn(AndroidSchedulers.mainThread()), port, ip)
+                        socketServer = SocketServer(
+                                acceleration.subscribeOn(AndroidSchedulers.mainThread()),
+                                gravity.subscribeOn(AndroidSchedulers.mainThread()),
+                                port, ip)
                         socketServer?.start()
                         break
                     }
@@ -98,7 +105,12 @@ class Schaatsplank: Activity(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        values.onNext(event)
+        if(event?.sensor == gravSensor) {
+            gravity.onNext(event)
+        }
+        if(event?.sensor == acclSensor) {
+            acceleration.onNext(event)
+        }
     }
 }
 

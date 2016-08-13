@@ -13,7 +13,7 @@ import java.util.*
 /**
  * @author Herman Banken, Q42
  */
-class SocketServer(val input: Observable<SensorEvent>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
+class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
     private var subscription: Subscription? = null
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
@@ -41,23 +41,26 @@ class SocketServer(val input: Observable<SensorEvent>, port: Int, ip: String): W
     }
 
     fun ensureSubscribed() {
+
         if(subscription == null) {
-            val gravity = input.map { it.values }.lowpass(1f/20f)
-            val rest = gravity.publish { it.zipWith(input.skipUntil(it), { g, i -> i.values.minus(g) }) }
-
-            gravity.zipWith(input.skipUntil(gravity), { g, i -> i.values to g })
-                .subscribe { Log.i(javaClass.simpleName, "${it.first.string()} ${it.second.string()}") }
-
-            val speed = input.map { it.values }.scan(0f, { speed, arr ->
-                speed + arr[0]
-            }).map { "[$it]" }
-
-            subscription = rest.subscribe({
-                sendToAll("${it.string()}")
+            val gravityFactor = gravity.map { gravityFunction(it.values.get(2)) }
+            subscription = acceleration
+                    .map { it.values.get(0) }
+                    .withLatestFrom(gravityFactor, { a, b -> (a to b) })
+            .subscribe({
+                Log.i(javaClass.simpleName, "${it}")
+//                sendToAll("${it}")
             }, {
                 Log.e(javaClass.simpleName, "rx error", it)
             })
         }
+    }
+
+    fun gravityFunction(zAxis: Float): Float {
+        val quad = -Math.pow(zAxis / 3.0 - 1, 4.0) / 7
+        val duo = Math.pow(zAxis / 3.0 - 1, 2.0) / 2
+        val sin = zAxis / 4
+        return ((quad + duo + sin) / 4.6 + 0.5).toFloat()
     }
 
     override fun onMessage(conn: WebSocket?, message: String?) {}
@@ -88,7 +91,6 @@ infix fun FloatArray.minus(other: FloatArray): FloatArray {
     val ret = FloatArray(this.size)
     for  (i in 0..(this.size-1)) {
         ret[i] = this[i] - other[i]
-//        Log.i(javaClass.simpleName, "${this[i]} - ${other[i]} = ${ret[i]}")
     }
     return ret
 }
