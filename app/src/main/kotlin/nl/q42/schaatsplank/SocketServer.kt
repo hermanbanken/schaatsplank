@@ -11,6 +11,34 @@ import java.net.InetSocketAddress
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+enum class Where {
+    LEFT, MIDWAY, RIGHT
+}
+
+data class State(val speed: Float, val distance: Float, val time: Long, val where: Where = Where.MIDWAY) {
+    fun then(acc: SensorEvent): State {
+        if(time == 0L) {
+            return State(speed, distance, acc.timestamp)
+        } else {
+            // idea: calculate distance after bounce, later limit on at least 1m
+            val dt = (acc.timestamp - time) * 1e-9f
+            val ds = acc.values[0] * dt
+            val slowDown = Math.pow(0.75, 1.0*dt).toFloat()
+            val ns = (speed * slowDown) + ds
+            val nd = if(where == Where.MIDWAY) { distance + speed * dt } else { 0f }
+            if(speed > 0 && ns < 0) {
+                // l <-- r
+                return State(ns, nd, acc.timestamp, Where.RIGHT)
+            } else if(speed < 0 && ns > 0) {
+                // l --> r
+                return State(ns, nd, acc.timestamp, Where.LEFT)
+            } else {
+                return State(ns, nd, acc.timestamp, Where.MIDWAY)
+            }
+        }
+    }
+}
+
 /**
  * @author Herman Banken, Q42
  */
@@ -45,41 +73,31 @@ class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Obser
 
         if(subscription == null) {
             val gravityFactor = gravity.map { gravityFunction(it.values.get(2)) }
+            val states =  acceleration
+                .scan(State(0f, 0f, 0L), { speed, acc -> speed.then(acc) })
+                .publish { Observable.merge(
+                    it.filter { it.where != Where.MIDWAY }.throttleFirst(500, TimeUnit.MILLISECONDS),
+                    it.filter { it.where == Where.MIDWAY }.throttleFirst(100, TimeUnit.MILLISECONDS)
+                ) }
 
-            val motions = acceleration
-                    .map { it.values.get(0) }
-                    .lowpassSingle(1/10f)
-                    .sample(20, TimeUnit.MILLISECONDS)
-                    .window(500, 200, TimeUnit.MILLISECONDS)
-                    .flatMap { it.toList() }
-                    .flatMapIterable { detect(it) }
-
-            val fingerWithSpeed =  acceleration
-                .map { it.values.get(0) }
-                .scan(0f, { speed, acc -> speed * 0.9f + acc })
-                .lowpassSingle(1/2f)
-                .window(2, 1)
-                .flatMap {
-                    it.toList().map {
-                        if(it[0] < 0 && it[1] > 0) {
-                            return@map 1
-                        } else if(it[0] > 0 && it[1] < 0){
-                            return@map -1
-                        } else {
-                            return@map 0
-                        }
-                    }.filter { it != 0 }
-                }
-                .withLatestFrom(finger, { a, b -> b to a })
-
-            subscription = fingerWithSpeed.subscribe({
-                Log.i(javaClass.simpleName, "${it}")
-                // sendToAll("${it}")
-            }, {
-                Log.e(javaClass.simpleName, "rx error", it)
-            })
+            subscription = states
+                .withLatestFrom(gravityFactor, { state, gravity -> state to gravity })
+                .subscribe({
+                    val (s, gravity) = it
+                    sendToAll("""{
+                    "event": "position",
+                    "where": "${s.where}",
+                    "distance": "${s.distance}",
+                    "speed": "${s.speed}",
+                    "shape": "$gravity"
+                    }""")
+                    Log.i(javaClass.simpleName, "${it}")
+                }, {
+                    Log.e(javaClass.simpleName, "rx error", it)
+                })
         }
     }
+
 
     fun gravityFunction(zAxis: Float): Float {
         val quad = -Math.pow(zAxis / 3.0 - 1, 4.0) / 7
