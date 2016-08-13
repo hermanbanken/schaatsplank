@@ -9,11 +9,12 @@ import rx.Observable
 import rx.Subscription
 import java.net.InetSocketAddress
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Herman Banken, Q42
  */
-class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
+class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, val finger: Observable<Float>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
     private var subscription: Subscription? = null
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
@@ -44,12 +45,36 @@ class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Obser
 
         if(subscription == null) {
             val gravityFactor = gravity.map { gravityFunction(it.values.get(2)) }
-            subscription = acceleration
+
+            val motions = acceleration
                     .map { it.values.get(0) }
-                    .withLatestFrom(gravityFactor, { a, b -> (a to b) })
-            .subscribe({
+                    .lowpassSingle(1/10f)
+                    .sample(20, TimeUnit.MILLISECONDS)
+                    .window(500, 200, TimeUnit.MILLISECONDS)
+                    .flatMap { it.toList() }
+                    .flatMapIterable { detect(it) }
+
+            val fingerWithSpeed =  acceleration
+                .map { it.values.get(0) }
+                .scan(0f, { speed, acc -> speed * 0.9f + acc })
+                .lowpassSingle(1/2f)
+                .window(2, 1)
+                .flatMap {
+                    it.toList().map {
+                        if(it[0] < 0 && it[1] > 0) {
+                            return@map 1
+                        } else if(it[0] > 0 && it[1] < 0){
+                            return@map -1
+                        } else {
+                            return@map 0
+                        }
+                    }.filter { it != 0 }
+                }
+                .withLatestFrom(finger, { a, b -> b to a })
+
+            subscription = fingerWithSpeed.subscribe({
                 Log.i(javaClass.simpleName, "${it}")
-//                sendToAll("${it}")
+                // sendToAll("${it}")
             }, {
                 Log.e(javaClass.simpleName, "rx error", it)
             })
@@ -82,6 +107,21 @@ class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Obser
             }
         }
     }
+}
+
+fun detect(values: List<Float>): Iterable<Int> {
+    if(values.size < 2) emptyList<Int>()
+    val half = values.size / 2
+    val sum = values.reversed().zip(values).take(half).sumByDouble {
+        if (it.first < 0 && it.second > 0) {
+            return@sumByDouble  Math.pow(1.0 * it.first * it.second, 2.0) * -1
+        } else if(it.first > 0 && it.second < 0) {
+            return@sumByDouble Math.pow(1.0 * it.first * it.second, 2.0)
+        } else {
+            return@sumByDouble 0.0
+        }
+    }
+    return arrayOf(sum.toInt()).asIterable()
 }
 
 infix fun FloatArray.minus(other: FloatArray): FloatArray {

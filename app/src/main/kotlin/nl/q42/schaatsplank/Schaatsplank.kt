@@ -10,12 +10,13 @@ import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.View.OnTouchListener
 import fi.iki.elonen.NanoHTTPD
 import kotlinx.android.synthetic.main.activity_main.*
-import rx.Observable
-import rx.Subscriber
+import org.jetbrains.anko.contentView
 import rx.android.schedulers.AndroidSchedulers
-import rx.functions.Func1
 import rx.subjects.BehaviorSubject
 import timber.log.Timber
 import java.io.IOException
@@ -23,13 +24,11 @@ import java.math.BigInteger
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.ServerSocket
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 /**
  * @author Herman Banken, Q42
  */
-class Schaatsplank: Activity(), SensorEventListener {
+class Schaatsplank: Activity(), SensorEventListener, OnTouchListener {
     private var sensorManager: SensorManager? = null
     private var gravSensor: Sensor? = null
     private var acclSensor: Sensor? = null
@@ -38,6 +37,7 @@ class Schaatsplank: Activity(), SensorEventListener {
 
     private val acceleration: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
     private val gravity: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
+    private val finger: BehaviorSubject<Float> = BehaviorSubject.create()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +58,7 @@ class Schaatsplank: Activity(), SensorEventListener {
         Timber.i("Sensor $gravSensor")
         sensorManager?.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_GAME)
         sensorManager?.registerListener(this, acclSensor, SensorManager.SENSOR_DELAY_GAME)
+        contentView?.setOnTouchListener(this)
 
         Thread {
             run {
@@ -81,6 +82,7 @@ class Schaatsplank: Activity(), SensorEventListener {
                         socketServer = SocketServer(
                                 acceleration.subscribeOn(AndroidSchedulers.mainThread()),
                                 gravity.subscribeOn(AndroidSchedulers.mainThread()),
+                                finger.subscribeOn(AndroidSchedulers.mainThread()),
                                 port, ip)
                         socketServer?.start()
                         break
@@ -112,6 +114,18 @@ class Schaatsplank: Activity(), SensorEventListener {
             acceleration.onNext(event)
         }
     }
+
+    override fun onTouch(view: View?, event: MotionEvent?): Boolean {
+        if(event?.action == MotionEvent.ACTION_DOWN || event?.action == MotionEvent.ACTION_MOVE) {
+            val x = event?.x?.toFloat()
+            if (x != null && view != null) {
+                finger.onNext(x / view.width)
+                return true
+            }
+        }
+        return false
+    }
+
 }
 
 /**

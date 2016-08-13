@@ -82,6 +82,16 @@ fun Observable<FloatArray>.lowpass(factor: Float): Observable<FloatArray> {
     .filter { it.size > 0 }
 }
 
-fun Observable<FloatArray>.lowpass2(factor: Float): Observable<FloatArray> {
-    return this.lift<FloatArray>(LowPassOperator(factor))
+fun Observable<Float>.lowpassSingle(factor: Float): Observable<Float> {
+    return this.scan(0f to 0f, { memo, t ->
+        val (stable, stabilized) = memo
+        val next = stabilized * (1f - factor) + t * factor
+        if(stable < 1) {
+            return@scan (stable + factor to next)
+        } else {
+            return@scan (stable to next)
+        }
+    })
+    .filter { it.first >= 1 }
+    .map { it.second }
 }
