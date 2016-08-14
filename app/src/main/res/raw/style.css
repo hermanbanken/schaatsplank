@@ -1,4 +1,4 @@
-body, html { padding: 0; margin: 0 }
+body, html { padding: 0; margin: 0; background: #eeeeee; }
 
 .box {
    padding: 1.5vw;
@@ -23,9 +23,12 @@ body, html { padding: 0; margin: 0 }
     position: absolute;
     left: 3vw;
     bottom: 3vw;
-    width: 30vw;
+    width: 15vw;
     font-size: 4vw;
     z-index: 1000;
+}
+.bottomleft.wide {
+    width: 30vw;
 }
 
 .circle {
@@ -66,7 +69,11 @@ div#form, #message {
 
 .centerbox {
   width: 60vw;
-  margin: 5vw auto;
+  margin: 3vw auto;
+}
+
+#small-rankings {
+ font-size: 1vw;
 }
 
 /** TABLE SHIZZLE **/
@@ -151,4 +158,86 @@ h1.fill .th {
   font-size: 2vw;
   font-weight: 400;
   text-transform: uppercase;
+}
+
+.darker input, .lighter input {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 1em;
+  border: none;
+}
+
+a {
+  cursor: pointer;
+}
+
+.nos {
+  z-index: 1000;
+}
+
+.nos button {
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  background: none;
+  padding: 0.5vw;
+  font-family: Helvetica;
+  font-weight: 100;
+  font-size: 2vw;
+  line-height: 2vw;
+  text-align: center;
+  color: white;
+  width: 100%;
+}
+h1.fill.nos .th {
+    padding: 0;
+    text-align: center;
+}
+
+.centered {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  line-height: 80vh;
+  font-size: 4vw;
+  font-weight: 800;
+  text-align: center;
+  color: white;
+  text-shadow: 0.5vw 0.5vw 2vw rgba(0,0,0,.4);
+  z-index: 500;
+}
+
+/** Animations **/
+.bounce-transition {
+  display: inline-block;
+}
+.bounce-enter {
+  animation: bounce-in .5s;
+}
+.bounce-leave {
+  animation: bounce-out .5s;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes bounce-out {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(0);
+  }
 }

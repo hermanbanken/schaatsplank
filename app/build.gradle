@@ -76,6 +76,8 @@ dependencies {
     compile 'org.jetbrains.anko:anko-sdk19:0.9'
     compile 'org.jetbrains.anko:anko-support-v4:0.9'
     compile 'org.jetbrains.anko:anko-appcompat-v7:0.9'
+    // JSON
+    compile 'com.github.salomonbrys.kotson:kotson:2.3.0'
     // Other useful dependencies
     compile 'com.jakewharton.timber:timber:4.1.2'
     compile 'com.roughike:bottom-bar:1.4.0.1'

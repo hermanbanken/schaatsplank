@@ -1,12 +1,22 @@
 package nl.q42.schaatsplank
 
+import android.content.Context
 import android.hardware.SensorEvent
 import android.util.Log
+import com.github.salomonbrys.kotson.typeToken
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import rx.Observable
 import rx.Subscription
+import rx.lang.kotlin.PublishSubject
+import rx.lang.kotlin.toObservable
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -14,6 +24,10 @@ import java.util.concurrent.TimeUnit
 enum class Where {
     LEFT, MIDWAY, RIGHT
 }
+
+data class Match(val name: String, val email: String? = null, val distance: Int = 500, val result: Float? = 0f)
+
+data class Message(val message: String, val event: String = "message")
 
 data class State(val speed: Float, val distance: Float, val time: Long, val where: Where = Where.MIDWAY) {
     fun then(acc: SensorEvent): State {
@@ -23,7 +37,7 @@ data class State(val speed: Float, val distance: Float, val time: Long, val wher
             // idea: calculate distance after bounce, later limit on at least 1m
             val dt = (acc.timestamp - time) * 1e-9f
             val ds = acc.values[0] * dt
-            val slowDown = Math.pow(0.75, 1.0*dt).toFloat()
+            val slowDown = Math.pow(0.5, 1.0*dt).toFloat()
             val ns = (speed * slowDown) + ds
             val nd = if(where == Where.MIDWAY) { distance + speed * dt } else { 0f }
             if(speed > 0 && ns < 0) {
@@ -42,8 +56,10 @@ data class State(val speed: Float, val distance: Float, val time: Long, val wher
 /**
  * @author Herman Banken, Q42
  */
-class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, val finger: Observable<Float>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
+class SocketServer(val context: Context, val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, val finger: Observable<Float>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
     private var subscription: Subscription? = null
+    val gson = Gson()
+    val startRequests = PublishSubject<Match>()
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         if(conn == null) return
@@ -80,21 +96,36 @@ class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Obser
                     it.filter { it.where == Where.MIDWAY }.throttleFirst(100, TimeUnit.MILLISECONDS)
                 ) }
 
-            subscription = states
+            val stateEvents = states
                 .withLatestFrom(gravityFactor, { state, gravity -> state to gravity })
-                .subscribe({
+                .map({
                     val (s, gravity) = it
-                    sendToAll("""{
-                    "event": "position",
-                    "where": "${s.where}",
-                    "distance": "${s.distance}",
-                    "speed": "${s.speed}",
-                    "shape": "$gravity"
-                    }""")
-                    Log.i(javaClass.simpleName, "${it}")
-                }, {
-                    Log.e(javaClass.simpleName, "rx error", it)
-                })
+                    return@map """{
+                        "event": "position",
+                        "where": "${s.where}",
+                        "distance": "${s.distance}",
+                        "speed": "${s.speed}",
+                        "shape": "$gravity"
+                        }"""
+                 })
+
+            val matches = startRequests.switchMap { match ->
+                val messages = arrayOf(
+                    "Skaters, go to the start!",
+                    "Ready?!",
+                    "Start!").map { Message(it) }
+                Observable.interval(1, 3, TimeUnit.SECONDS)
+                        .zipWith(messages.toObservable(), { t, m -> m })
+                        .map { gson.toJson(it) }
+                        .concatWith(stateEvents)
+            }
+
+            matches.subscribe({
+                sendToAll(it)
+//                Log.i(javaClass.simpleName, "${it}")
+            }, {
+                Log.e(javaClass.simpleName, "rx error", it)
+            })
         }
     }
 
@@ -106,7 +137,18 @@ class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Obser
         return ((quad + duo + sin) / 4.6 + 0.5).toFloat()
     }
 
-    override fun onMessage(conn: WebSocket?, message: String?) {}
+    override fun onMessage(conn: WebSocket?, message: String?) {
+        if(message == null) return
+        write(context, message)
+        val obj = gson.fromJson<JsonObject>(message, typeToken<JsonObject>())
+        if(obj.has("event") && obj.get("event").asString == "start") {
+            val name = if(obj.has("name")) obj.get("name").asString else "anonymous"
+            val mail = if(obj.has("mail")) obj.get("mail").asString else null
+            val dist = obj.get("distance").asInt
+            startRequests.onNext(Match(name = name, email = mail, distance = dist))
+        }
+    }
+
     override fun onError(conn: WebSocket?, ex: Exception?) {}
 
     /**
@@ -123,6 +165,21 @@ class SocketServer(val acceleration: Observable<SensorEvent>, val gravity: Obser
             for(c in con) {
                 c.send( text );
             }
+        }
+    }
+
+    fun write(context: Context, body: String) {
+        val file = File(context.filesDir, "ranking.txt")
+        try {
+            val writer = FileWriter(file, true)
+            if (file.length() > 0) {
+                writer.appendln()
+            }
+            writer.append(body)
+            writer.flush()
+            writer.close()
+        } catch(e: IOException) {
+            Log.e(javaClass.simpleName, "error while saving", e)
         }
     }
 }

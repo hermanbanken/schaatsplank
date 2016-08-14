@@ -4,25 +4,33 @@
     <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
-<div class="topleft" v-if="mode > 0">
-    <h1 class='fill' style="margin: 0 0 2vw">
-        <div class='diagl'></div>
-        <div class='th darker'>41.99</div>
-        <div class='diagr'></div>
-    </h1>
-    <h1 class='fill' style="margin: 0 0 2vw">
-        <div class='diagl'></div>
-        <div class='th darker'>122m</div>
-        <div class='diagr'></div>
-    </h1>
+<div class="topleft" v-if="mode == 0">
+    <template v-for="distance in distances">
+        <knop v-on:click="start(distance.value)">Start {{ distance.value}}</knop>
+    </template>
 </div>
-<div class="bottomleft" v-if="mode == 0">
-    <table id="small-rankings" style="font-size: 1vw; width: 100%">
+<div class="topleft" v-if="mode > 0">
+    <nos>{{match.time | time}}</nos>
+    <nos>{{match.distance}}m</nos>
+</div>
+
+<div class="topleft" v-if="mode == -1">
+    <knop v-on:click="home()">Terug</knop>
+</div>
+
+<div class="bottomleft" v-if="mode == 1">
+    <knop v-on:click="home()">Terug</knop>
+</div>
+
+<div class="centered" transition="bounce" v-show="hasMessage">{{message}}</div>
+
+<div class="bottomleft wide" v-if="mode == 0">
+    <table id="small-rankings">
         <thead><tr>
             <th colspan="2">
                 <div class='fill'>
                     <div class='diagl'></div>
-                    <div class='th darker'>KLASSEMENT</div>
+                    <a class='th darker' v-on:click="menu()">KLASSEMENT</a>
                     <div class='diagr'></div>
                 </div>
             </th>
@@ -51,6 +59,24 @@
         </template>
     </table>
 </div>
+
+<template name="knop">
+    <h1 class='fill' style="margin: 0 0 2vw">
+        <div class='diagl'></div>
+        <div class='th darker'><slot></slot></div>
+        <div class='diagr'></div>
+    </h1>
+</template>
+
+
+<template name="nos">
+    <h1 class='fill' style="margin: 0 0 2vw">
+        <div class='diagl'></div>
+        <div class='th darker'><slot></slot></div>
+        <div class='diagr'></div>
+    </h1>
+</template>
+
 
 <!--<div class="circle" id="circle"></div>-->
 
@@ -107,10 +133,10 @@
 
     <h1 class='fill' style="margin-bottom:1vw; margin-top:3em">
         <div class='diagl'></div>
-        <div class='th darker'>Configuratie</div>
+        <a class='th darker' v-on:click="config = !config">Configuratie</a>
         <div class='diagr'></div>
     </h1>
-    <table>
+    <table v-if="config">
         <template v-for="distance in distances">
             <tr class='lighter'>
                 <td class="darker">

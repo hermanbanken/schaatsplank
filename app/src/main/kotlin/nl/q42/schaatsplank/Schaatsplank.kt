@@ -66,7 +66,9 @@ class Schaatsplank: Activity(), SensorEventListener, OnTouchListener {
                     Log.i(javaClass.simpleName, "HTTP: Trying port $ip:$port")
                     if(available(port, ip)) {
                         Log.i(javaClass.simpleName, "HTTP: Selected $ip:$port")
-                        textView.text = "Schaatsplank. Surf to http://$ip:$port/"
+                        runOnUiThread {
+                            textView.text = "Schaatsplank. Surf to http://$ip:$port/"
+                        }
                         httpServer = HttpServer(ip, port, this)
                         httpServer?.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
                         break
@@ -80,6 +82,7 @@ class Schaatsplank: Activity(), SensorEventListener, OnTouchListener {
                     if(available(port, ip)) {
                         Log.i(javaClass.simpleName, "WS: Selected $ip:$port")
                         socketServer = SocketServer(
+                                this,
                                 acceleration.subscribeOn(AndroidSchedulers.mainThread()),
                                 gravity.subscribeOn(AndroidSchedulers.mainThread()),
                                 finger.subscribeOn(AndroidSchedulers.mainThread()),
@@ -89,7 +92,9 @@ class Schaatsplank: Activity(), SensorEventListener, OnTouchListener {
                     }
                 }
                 if(socketServer == null) {
-                    textView.text = "Cant open ws ports 8080-8090. App might be started multiple times. Please close all instances."
+                    runOnUiThread {
+                        textView.text = "Cant open ws ports 8080-8090. App might be started multiple times. Please close all instances."
+                    }
                 }
             }
         }.start()
