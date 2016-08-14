@@ -2,32 +2,49 @@ package nl.q42.schaatsplank
 
 import org.junit.Assert
 import org.junit.Test
+import rx.Observable
+import rx.lang.kotlin.subscriber
+import rx.observers.TestSubscriber
+import rx.schedulers.TestScheduler
+import rx.schedulers.Timestamped
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Herman Banken, Q42
  */
 class AlgorithmTest {
 
-    @Test
+//    @Test
     fun testDeceleration() {
         val ts = arrayOf(1389226989662781, 1389227009295958, 1389227029283094, 1389227049200177, 1389227069638719, 1389227089131583)
         val dts = ts.sliding({ a, b -> b - a })
 
         val result = dts.map { 1e-9f * it }.fold(2f, { speed, dt -> speed * Math.pow(0.90, 1.0*dt).toFloat() })
         Assert.assertEquals(1.5f, result)
-//        Assert.assertArrayEquals(arrayOf(0L,0L,0L,0L,0L), dts.toTypedArray())
-
-        /*
-i: (0.014814815, state(speed=7.9466085, distance=-254.51645, time=1389226989662781))
-i: (0.014814815, state(speed=13.957876, distance=-252.95628, time=1389227009295958))
-i: (0.014814815, state(speed=21.287668, distance=-250.1665, time=1389227029283094))
-i: (0.014814815, state(speed=28.188633, distance=-245.92662, time=1389227049200177))
-i: (0.014814815, state(speed=34.744045, distance=-240.16527, time=1389227069638719))
-i: (0.014814815, state(speed=37.769, distance=-233.39265, time=1389227089131583))
-*/
     }
 
+    @Test
+    fun testMatchObservable() {
+        val scheduler = TestScheduler()
+        val start = System.nanoTime()
+        val slag = 3000L
+        val mock = Observable.interval(19, TimeUnit.MILLISECONDS, scheduler).map { i ->
+            val mod = i % (slag / 19)
+            val where = if(mod == 0L) Where.LEFT else if(mod == (slag / 2 / 19)) Where.RIGHT else Where.MIDWAY
+            State(0f, 0f, start + i * 19e6.toLong(), i * 19e6.toLong(), where)
+        }.map { it to 0.99f }
+
+        val result = TestSubscriber<Pair<ExternalState,Float>>()
+        mock.match(Match("unknown", distance = 500)).subscribe(result)
+        scheduler.advanceTimeBy(2, TimeUnit.MINUTES)
+        val final = result.onNextEvents.last()
+        val accs = result.onNextEvents.map { it.first.speed to it.second }
+        val tfinal = final.first.time
+        Assert.assertTrue("tfinal > 36", tfinal > 36f)
+        Assert.assertTrue("tfinal < 50", tfinal < 50f)
+        result.assertCompleted()
+    }
 }
 
 /*

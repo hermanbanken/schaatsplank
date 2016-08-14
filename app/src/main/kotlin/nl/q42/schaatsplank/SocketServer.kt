@@ -5,7 +5,6 @@ import android.hardware.SensorEvent
 import android.util.Log
 import com.github.salomonbrys.kotson.typeToken
 import com.google.gson.Gson
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
@@ -26,32 +25,7 @@ enum class Where {
 }
 
 data class Match(val name: String, val email: String? = null, val distance: Int = 500, val result: Float? = 0f)
-
 data class Message(val message: String, val event: String = "message")
-
-data class State(val speed: Float, val distance: Float, val time: Long, val where: Where = Where.MIDWAY) {
-    fun then(acc: SensorEvent): State {
-        if(time == 0L) {
-            return State(speed, distance, acc.timestamp)
-        } else {
-            // idea: calculate distance after bounce, later limit on at least 1m
-            val dt = (acc.timestamp - time) * 1e-9f
-            val ds = acc.values[0] * dt
-            val slowDown = Math.pow(0.5, 1.0*dt).toFloat()
-            val ns = (speed * slowDown) + ds
-            val nd = if(where == Where.MIDWAY) { distance + speed * dt } else { 0f }
-            if(speed > 0 && ns < 0) {
-                // l <-- r
-                return State(ns, nd, acc.timestamp, Where.RIGHT)
-            } else if(speed < 0 && ns > 0) {
-                // l --> r
-                return State(ns, nd, acc.timestamp, Where.LEFT)
-            } else {
-                return State(ns, nd, acc.timestamp, Where.MIDWAY)
-            }
-        }
-    }
-}
 
 /**
  * @author Herman Banken, Q42
@@ -60,6 +34,7 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
     private var subscription: Subscription? = null
     val gson = Gson()
     val startRequests = PublishSubject<Match>()
+    val stopRequests = PublishSubject<Unit>()
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         if(conn == null) return
@@ -86,9 +61,8 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
     }
 
     fun ensureSubscribed() {
-
         if(subscription == null) {
-            val gravityFactor = gravity.map { gravityFunction(it.values.get(2)) }
+            val gravityFactor = gravity.map { Algorithm.gravityFunction(it.values.get(2)) }
             val states =  acceleration
                 .scan(State(0f, 0f, 0L), { speed, acc -> speed.then(acc) })
                 .publish { Observable.merge(
@@ -97,17 +71,7 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
                 ) }
 
             val stateEvents = states
-                .withLatestFrom(gravityFactor, { state, gravity -> state to gravity })
-                .map({
-                    val (s, gravity) = it
-                    return@map """{
-                        "event": "position",
-                        "where": "${s.where}",
-                        "distance": "${s.distance}",
-                        "speed": "${s.speed}",
-                        "shape": "$gravity"
-                        }"""
-                 })
+                .withLatestFrom(gravityFactor, { state, gravity -> state to Gravity(gravity) })
 
             val matches = startRequests.switchMap { match ->
                 val messages = arrayOf(
@@ -115,26 +79,22 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
                     "Ready?!",
                     "Start!").map { Message(it) }
                 Observable.interval(1, 3, TimeUnit.SECONDS)
-                        .zipWith(messages.toObservable(), { t, m -> m })
+                    .zipWith(messages.toObservable(), { t, m -> m })
+                    .map { gson.toJson(it) }
+                    .concatWith(stateEvents
+                        .match(match)
                         .map { gson.toJson(it) }
-                        .concatWith(stateEvents)
+                    )
+                    .concatWith(Observable.just("{ 'event': 'done' }"))
+                    .takeUntil(stopRequests)
             }
 
             matches.subscribe({
                 sendToAll(it)
-//                Log.i(javaClass.simpleName, "${it}")
             }, {
                 Log.e(javaClass.simpleName, "rx error", it)
             })
         }
-    }
-
-
-    fun gravityFunction(zAxis: Float): Float {
-        val quad = -Math.pow(zAxis / 3.0 - 1, 4.0) / 7
-        val duo = Math.pow(zAxis / 3.0 - 1, 2.0) / 2
-        val sin = zAxis / 4
-        return ((quad + duo + sin) / 4.6 + 0.5).toFloat()
     }
 
     override fun onMessage(conn: WebSocket?, message: String?) {
@@ -146,6 +106,9 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
             val mail = if(obj.has("mail")) obj.get("mail").asString else null
             val dist = obj.get("distance").asInt
             startRequests.onNext(Match(name = name, email = mail, distance = dist))
+        }
+        if(obj.has("event") && obj.get("event").asString == "stop") {
+            stopRequests.onNext(Unit)
         }
     }
 
@@ -182,21 +145,6 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
             Log.e(javaClass.simpleName, "error while saving", e)
         }
     }
-}
-
-fun detect(values: List<Float>): Iterable<Int> {
-    if(values.size < 2) emptyList<Int>()
-    val half = values.size / 2
-    val sum = values.reversed().zip(values).take(half).sumByDouble {
-        if (it.first < 0 && it.second > 0) {
-            return@sumByDouble  Math.pow(1.0 * it.first * it.second, 2.0) * -1
-        } else if(it.first > 0 && it.second < 0) {
-            return@sumByDouble Math.pow(1.0 * it.first * it.second, 2.0)
-        } else {
-            return@sumByDouble 0.0
-        }
-    }
-    return arrayOf(sum.toInt()).asIterable()
 }
 
 infix fun FloatArray.minus(other: FloatArray): FloatArray {

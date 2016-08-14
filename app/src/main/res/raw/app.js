@@ -160,7 +160,7 @@ new Vue({
     },
     home: function(){
       if(this.mode == 1 && confirm("Sure?")) {
-
+        this.send({ event: 'stop' });
       }
       this.mode = 0;
     },
