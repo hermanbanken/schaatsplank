@@ -1,0 +1,154 @@
+body, html { padding: 0; margin: 0 }
+
+.box {
+   padding: 1.5vw;
+   background: rgba(0,0,0,0.3);
+   color: white;
+   font-family: Monospace;
+   text-align: center;
+   line-height: 100%;
+   margin-bottom: 1vw;
+}
+
+.topleft {
+    position: absolute;
+    left: 3vw;
+    top: 3vw;
+    width: 15vw;
+    font-size: 4vw;
+    z-index: 1000;
+}
+
+.bottomleft {
+    position: absolute;
+    left: 3vw;
+    bottom: 3vw;
+    width: 30vw;
+    font-size: 4vw;
+    z-index: 1000;
+}
+
+.circle {
+    width: 6vw;
+    height: 6vw;
+    border-radius: 3vw;
+    background: red;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 0 -3vw;
+}
+
+div#form, #message {
+    position: absolute;
+    left: 21vw;
+    right: 21vw;
+    top: 3vw;
+    bottom: 3vw;
+    text-align: center;
+    font-size: 2vw;
+}
+
+#form input {
+    font-size: 2vw;
+    display: block;
+    line-height: 6vw;
+    height: 6vw;
+    width: 100%;
+    margin-bottom: 1vw;
+    padding: 1vw;
+}
+
+/*button {
+    font-size: 5vw;
+    padding: 1vw 3vw;
+}*/
+
+.centerbox {
+  width: 60vw;
+  margin: 5vw auto;
+}
+
+/** TABLE SHIZZLE **/
+
+.darker { background: #4360AD; }
+.lighter { background: #6184BC; }
+
+.diagl, .diagr {
+  display: block;
+  position: relative;
+}
+.diagr, .diagl {
+  width: 0;
+  height: 0;
+  margin: -0.5vw 0 -0.5vw 0;
+  border-left: 1.5vw solid black;
+  border-bottom: 3vw solid transparent;
+}
+
+.diagr {
+  float: right;
+  margin-right: -1vw;
+  margin-left: 1vw;
+  border-left-color: #4360AD;
+  border-bottom-color: #6184BC;
+}
+
+.diagl {
+  float: left;
+  margin-right: 1vw;
+  margin-left: -1vw;
+  border-left-color: #6184BC;
+  border-bottom-color: #4360AD;
+}
+
+td.time, th.time {
+  text-align: right;
+}
+th.time .th { padding-right: 1vw; }
+
+td, th {
+  padding: 0.5vw 1vw;
+  line-height: 2vw;
+  height: 3vw;
+  font-weight: 100;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+tr {
+  height: 3vw;
+}
+
+.fill { display: flex; width: 100%; }
+.fill .diagl { float: none; margin-right: 0; border-left-color: transparent; }
+.fill .diagr { float: none; margin-left: 0; border-bottom-color: transparent; }
+.fill .th { float: none;  display: block; line-height: 3vw; margin: -0.5vw 0; flex: 1 }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+table, .centerbox, div {
+  font-family: Helvetica;
+  font-weight: 100;
+  color: white;
+  font-size: 2vw;
+}
+
+.row-spacing {
+  background: transparent;
+  height: 0.5vw;
+}
+.row-spacing td {
+  line-height: 0;
+  padding: 0;
+  height: 0;
+}
+
+h1.fill .th {
+  padding: 0 2vw;
+  font-size: 2vw;
+  font-weight: 400;
+  text-transform: uppercase;
+}

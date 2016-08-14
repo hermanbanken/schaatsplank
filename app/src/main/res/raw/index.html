@@ -1,5 +1,128 @@
-<h1>Schaatsplank</h1>
-<div id="values"></div>
-<canvas id="chart"></canvas>
-<script src="smoothie.js"></script>
+<head>
+    <title>Schaatsplank</title>
+    <script src="vue.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<div class="topleft" v-if="mode > 0">
+    <h1 class='fill' style="margin: 0 0 2vw">
+        <div class='diagl'></div>
+        <div class='th darker'>41.99</div>
+        <div class='diagr'></div>
+    </h1>
+    <h1 class='fill' style="margin: 0 0 2vw">
+        <div class='diagl'></div>
+        <div class='th darker'>122m</div>
+        <div class='diagr'></div>
+    </h1>
+</div>
+<div class="bottomleft" v-if="mode == 0">
+    <table id="small-rankings" style="font-size: 1vw; width: 100%">
+        <thead><tr>
+            <th colspan="2">
+                <div class='fill'>
+                    <div class='diagl'></div>
+                    <div class='th darker'>KLASSEMENT</div>
+                    <div class='diagr'></div>
+                </div>
+            </th>
+            <th class="time">
+                <div class='fill'>
+                    <div class='diagl'></div>
+                    <div class='th darker'>PTS</div>
+                    <div class='diagr'></div>
+                </div>
+            </th>
+        </tr></thead>
+        <template v-for="skater in rankings | orderBy bestRanking | limitBy 5">
+            <tr class='row-spacing'><td colspan="*"></td></tr>
+            <tr class='lighter'>
+                <td class="darker">
+                    {{ $index + 1 }}
+                    <div class='diagr'></div>
+                </td>
+                <td><span>{{ skater.name }}</span></td>
+                <td class='time darker'>
+                    <div class='diagl'></div>
+                    {{ skater.pts | pts }}
+                    <div class='diagr'></div>
+                </td>
+            </tr>
+        </template>
+    </table>
+</div>
+
+<!--<div class="circle" id="circle"></div>-->
+
+<!--<div id="message">-->
+
+<!--</div>-->
+
+<!--<div id="form">-->
+    <!--&lt;!&ndash;<input type="text" name="name" id="name" placeholder="Je naam" />&ndash;&gt;-->
+    <!--&lt;!&ndash;<input type="text" name="mail" id="mail" placeholder="E-mailadres, optioneel" />&ndash;&gt;-->
+    <!--<button>Start</button>-->
+<!--</div>-->
+
+<div class="centerbox" v-if="mode == -1">
+    <h1 class='fill' style="margin-bottom:1vw">
+        <div class='diagl'></div>
+        <div class='th darker'>Klassement</div>
+        <div class='diagr'></div>
+    </h1>
+    <table id="ranking">
+        <thead><tr>
+            <th></th>
+            <th></th>
+            <th v-for="distance in distances" class="time">
+                <div class='fill'>
+                    <div class='diagl'></div>
+                    <div class='th darker'>{{ distance.value }}m</div>
+                    <div class='diagr'></div>
+                </div>
+            </th>
+        </tr></thead>
+        <template v-for="skater in rankings | orderBy bestRanking">
+            <tr class='row-spacing'><td colspan="*"></td></tr>
+            <tr class='lighter'>
+                <td class="darker">
+                    {{ $index + 1 }}
+                    <div class='diagr'></div>
+                </td>
+                <td><span>{{ skater.name }}</span></td>
+                <td v-for="rank in skater.results" class='darker time'>
+                    <div class='diagl'></div>
+                    <template v-if="rank.result">{{ rank.result.time | time }}</template>
+                    <!--<span v-else><button>Start</button></span>-->
+                    <div class='diagr'></div>
+                </td>
+                <td class='time darker'>
+                    <div class='diagl'></div>
+                    {{ skater.pts | pts }}
+                    <div class='diagr'></div>
+                </td>
+            </tr>
+        </template>
+    </table>
+
+    <h1 class='fill' style="margin-bottom:1vw; margin-top:3em">
+        <div class='diagl'></div>
+        <div class='th darker'>Configuratie</div>
+        <div class='diagr'></div>
+    </h1>
+    <table>
+        <template v-for="distance in distances">
+            <tr class='lighter'>
+                <td class="darker">
+                    <input type="checkbox" v-model="distance.shown" />
+                    <div class='diagr'></div>
+                </td>
+                <td><input type="text" v-model="distance.name" /></td>
+                <td><input type="number" v-model="distance.value" number /></td>
+            </tr>
+            <tr class='row-spacing'><td colspan="*"></td></tr>
+        </template>
+    </table>
+</div>
+
 <script src="app.js"></script>
