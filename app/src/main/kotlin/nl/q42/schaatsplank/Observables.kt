@@ -22,18 +22,19 @@ fun <T,R> Observable<T>.sliding(op: (T, T) -> R): Observable<R> {
 
 fun <T> Observable<T>.debug(key: String? = null, op: ((Any?) -> String)? = null): Observable<T> {
     return this.doOnEach { n ->
-        return@doOnEach
-        // Disabled
+        if(!BuildConfig.DEBUG) {
+            return@doOnEach
+        }
         val message =
-                if(op != null && n.hasValue()) {
-                    try {
-                        if (key == null) "$n" else "$key: ${op(n.value)}"
-                    } catch(_: Exception) {
-                        "$key: exception while determining value"
-                    }
-                } else {
-                    if (key == null) "$n" else "$key: $n"
+            if(op != null && n.hasValue()) {
+                try {
+                    if (key == null) "$n" else "$key: ${op(n.value)}"
+                } catch(_: Exception) {
+                    "$key: exception while determining value"
                 }
+            } else {
+                if (key == null) "$n" else "$key: $n"
+            }
         try {
             Log.i(javaClass.simpleName, message)
         } catch(_: Exception) {

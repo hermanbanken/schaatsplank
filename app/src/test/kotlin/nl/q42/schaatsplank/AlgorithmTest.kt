@@ -93,7 +93,7 @@ class AlgorithmTest {
 
     fun checkObservable(scheduler: TestScheduler, obs: Observable<Pair<State,Gravity>>, extra: Any): Float {
         val result = TestSubscriber<ExternalState>()
-        obs.match(Match("unknown", distance = 500)).subscribe(result)
+        obs.match(Match(0, "unknown", distance = 500)).subscribe(result)
         scheduler.advanceTimeBy(2, TimeUnit.DAYS)
         val final = result.onNextEvents.last()
         val accs = result.onNextEvents.map {

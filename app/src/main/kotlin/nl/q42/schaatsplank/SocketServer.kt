@@ -177,6 +177,9 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
 
     fun read(context: Context): List<Match> {
         val file = File(context.filesDir, "ranking.txt")
+        if(!file.exists()) {
+            return listOf()
+        }
         val reader = FileReader(file)
         try {
             return reader.readLines().flatMap {
