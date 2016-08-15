@@ -90,8 +90,7 @@ new Vue({
       }
       if(data.event == 'start') {
         this.name = "";
-        this.match.time = 0;
-        this.match.distance = 0;
+        this.match = { time: 0, distance: 0, done: false };
         var p = film.play();
         if (p && (typeof Promise !== 'undefined') && (p instanceof Promise)) {
             p.catch((e) => {
@@ -101,6 +100,8 @@ new Vue({
       }
       if(data.event == 'done') {
         film.currentTime = 0;
+        film.paulse();
+        this.match.done = true;
         this.mode = 0;
       }
       if(data.event == 'message') {

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Schaatsplank</string>
+    <string name="status">Status</string>
+    <string name="logs">Logs</string>
 </resources>
