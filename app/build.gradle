@@ -3,6 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
+    signingConfigs {
+        release {
+            keyAlias 'schaatsplankkey'
+            keyPassword '9rx2YBasgFVKpqdqCupAYYsDmH'
+            storeFile file('keystore.jks')
+            storePassword '9rx2YBasgFVKpqdqCupAYYsDmH'
+        }
+    }
     compileSdkVersion 24
     buildToolsVersion '23.0.3'
     defaultConfig {
@@ -22,12 +30,11 @@ android {
             minifyEnabled false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
             debuggable true
-        }
-        customDebuggableBuildType {
-            debuggable true
+            signingConfig signingConfigs.release
         }
     }
     repositories {
