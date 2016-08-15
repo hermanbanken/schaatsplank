@@ -34,7 +34,7 @@ data class Message(val message: String, val event: String = "message")
 /**
  * @author Herman Banken, Q42
  */
-class SocketServer(val context: Context, val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, val finger: Observable<Float>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
+class SocketServer(val context: Context, val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, port: Int, ip: String): WebSocketServer(InetSocketAddress(ip, port)) {
     private var subscription: Subscription? = null
     val gson = Gson()
     val startRequests = PublishSubject<Match>()
