@@ -83,9 +83,9 @@ class Schaatsplank: Activity(), SensorEventListener, OnTouchListener {
                         Log.i(javaClass.simpleName, "WS: Selected $ip:$port")
                         socketServer = SocketServer(
                                 this,
-                                acceleration.subscribeOn(AndroidSchedulers.mainThread()),
-                                gravity.subscribeOn(AndroidSchedulers.mainThread()),
-                                finger.subscribeOn(AndroidSchedulers.mainThread()),
+                                acceleration,
+                                gravity,
+                                finger,
                                 port, ip)
                         socketServer?.start()
                         break

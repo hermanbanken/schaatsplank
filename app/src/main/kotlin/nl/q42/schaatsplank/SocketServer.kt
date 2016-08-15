@@ -2,6 +2,7 @@ package nl.q42.schaatsplank
 
 import android.content.Context
 import android.hardware.SensorEvent
+import android.os.Looper
 import android.util.Log
 import com.github.salomonbrys.kotson.typeToken
 import com.google.gson.Gson
@@ -11,9 +12,12 @@ import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import rx.Observable
 import rx.Subscription
+import rx.android.schedulers.AndroidSchedulers
 import rx.lang.kotlin.PublishSubject
 import rx.lang.kotlin.toObservable
+import rx.schedulers.Schedulers
 import java.io.File
+import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -24,7 +28,7 @@ enum class Where {
     LEFT, MIDWAY, RIGHT
 }
 
-data class Match(val name: String, val email: String? = null, val distance: Int = 500, val result: Float? = 0f)
+data class Match(val number: Int = -1, val name: String, val email: String? = null, val distance: Int = 500, val result: Float? = 0f)
 data class Message(val message: String, val event: String = "message")
 
 /**
@@ -35,9 +39,16 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
     val gson = Gson()
     val startRequests = PublishSubject<Match>()
     val stopRequests = PublishSubject<Unit>()
+    val log = read(context).toMutableList()
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         if(conn == null) return
+        val log = read(context)
+        conn.send("""{ "event": "clear" }""")
+        log.forEach {
+            conn.send(gson.toJson(it))
+        }
+
     }
 
     override fun onClose(conn: WebSocket?, code: Int, reason: String?, remote: Boolean) {
@@ -69,10 +80,12 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
                     it.filter { it.where != Where.MIDWAY }.throttleFirst(500, TimeUnit.MILLISECONDS),
                     it.filter { it.where == Where.MIDWAY }.throttleFirst(100, TimeUnit.MILLISECONDS)
                 ) }
+                .onBackpressureBuffer(100, { Log.i(javaClass.simpleName, "Publish buffer overflow") })
 
             val stateEvents = states
                 .withLatestFrom(gravityFactor, { state, gravity -> state to Gravity(gravity) })
 
+            var state: ExternalState = ExternalState(0f, 0f, 0f, null)
             val matches = startRequests.switchMap { match ->
                 val messages = arrayOf(
                     "Skaters, go to the start!",
@@ -81,25 +94,39 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
                 Observable.interval(1, 3, TimeUnit.SECONDS)
                     .zipWith(messages.toObservable(), { t, m -> m })
                     .map { gson.toJson(it) }
+                    .concatWith(Observable.just("""{ "event": "start" }"""))
                     .concatWith(stateEvents
+                        .onBackpressureDrop()
                         .match(match)
+                        .doOnNext { state = it }
                         .map { gson.toJson(it) }
                     )
-                    .concatWith(Observable.just("{ 'event': 'done' }"))
+                    .concatWith(Observable.just("""{ "event": "done" }"""))
+                    .doOnCompleted {
+                        val result = match.copy(number = log.size, result = state.time)
+                        log.add(result)
+                        write(context, result)
+                    }
                     .takeUntil(stopRequests)
             }
 
-            matches.subscribe({
-                sendToAll(it)
-            }, {
-                Log.e(javaClass.simpleName, "rx error", it)
-            })
+            matches
+                .doOnError {
+                    Log.e(javaClass.simpleName, "error", it)
+                    sendToAll("""{ "event": "error", "error": "$it" }""")
+                }
+                .onBackpressureBuffer(1000, {
+                    Log.e(javaClass.simpleName, "too much backpressure!!")
+                })
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(Schedulers.newThread())
+                .retry()
+                .subscribe({ sendToAll(it) })
         }
     }
 
     override fun onMessage(conn: WebSocket?, message: String?) {
         if(message == null) return
-        write(context, message)
         val obj = gson.fromJson<JsonObject>(message, typeToken<JsonObject>())
         if(obj.has("event") && obj.get("event").asString == "start") {
             val name = if(obj.has("name")) obj.get("name").asString else "anonymous"
@@ -109,6 +136,23 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
         }
         if(obj.has("event") && obj.get("event").asString == "stop") {
             stopRequests.onNext(Unit)
+        }
+        if(obj.has("event") && obj.get("event").asString == "name") {
+            val m = log.removeAt(log.size - 1).copy(name = obj.get("name").asString)
+            log.add(m)
+            store()
+        }
+        if(obj.has("event") && obj.get("event").asString == "clear_ranking") {
+            overwrite(context, "")
+            store()
+        }
+    }
+
+    fun store() {
+        overwrite(context, log.map { gson.toJson(it) }.joinToString("\n"))
+        sendToAll("""{ "event": "clear" }""")
+        log.forEach {
+            sendToAll(gson.toJson(it))
         }
     }
 
@@ -131,13 +175,42 @@ class SocketServer(val context: Context, val acceleration: Observable<SensorEven
         }
     }
 
-    fun write(context: Context, body: String) {
+    fun read(context: Context): List<Match> {
+        val file = File(context.filesDir, "ranking.txt")
+        val reader = FileReader(file)
+        try {
+            return reader.readLines().flatMap {
+                val match = gson.fromJson<Match?>(it, typeToken<Match>())
+                (if(match != null) arrayOf(match) else arrayOf()).asIterable()
+            }
+        } catch(e: IOException) {
+            Log.e(javaClass.simpleName, "error while reading", e)
+            return listOf()
+        } finally {
+            reader.close()
+        }
+    }
+
+    fun write(context: Context, result: Match) {
         val file = File(context.filesDir, "ranking.txt")
         try {
             val writer = FileWriter(file, true)
             if (file.length() > 0) {
                 writer.appendln()
             }
+            writer.append(gson.toJson(result))
+            writer.flush()
+            writer.close()
+        } catch(e: IOException) {
+            Log.e(javaClass.simpleName, "error while saving", e)
+        }
+    }
+
+
+    fun overwrite(context: Context, body: String) {
+        val file = File(context.filesDir, "ranking.txt")
+        try {
+            val writer = FileWriter(file, false)
             writer.append(body)
             writer.flush()
             writer.close()

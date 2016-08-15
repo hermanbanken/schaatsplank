@@ -22,6 +22,8 @@ fun <T,R> Observable<T>.sliding(op: (T, T) -> R): Observable<R> {
 
 fun <T> Observable<T>.debug(key: String? = null, op: ((Any?) -> String)? = null): Observable<T> {
     return this.doOnEach { n ->
+        return@doOnEach
+        // Disabled
         val message =
                 if(op != null && n.hasValue()) {
                     try {

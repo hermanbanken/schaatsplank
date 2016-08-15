@@ -1,13 +1,15 @@
 package nl.q42.schaatsplank
 
 import android.hardware.SensorEvent
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import rx.Observable
 import rx.functions.Func2
 
 /**
  * @author Herman Banken, Q42
  */
-data class Frequency(val f: Float)
+data class Frequency(val f: Float, val time: Float? = 0f)
 data class Gravity(val factor: Float)
 data class Stability(val factor: Float)
 
@@ -36,7 +38,7 @@ data class State(val speed: Float, val distance: Float, val time: Long, val relT
     }
 }
 
-data class ExternalState(val distance: Float, val time: Float, val speed: Float, val measures: Triple<Gravity, Stability, Frequency>?)
+data class ExternalState(val distance: Float, val time: Float, val speed: Float, val measures: Triple<Gravity, Stability, Frequency>?, val extra: JsonObject = JsonObject())
 
 object Algorithm {
 
@@ -55,9 +57,11 @@ object Algorithm {
                 }
                 next to state
             })
-            .map { it.first }
-            .filter { it != 0f }
-            .map { Frequency(1f / it) }
+            .map { dur ->
+                if(dur.first == 0f) return@map Frequency(0f)
+                else return@map Frequency(1f / dur.first, dur.second.relTime * 1e-9f)
+            }
+            .filter { it.f != 0f }
             .debug("freq", { f -> (f as Frequency).f.format(3) + "Hz" })
 
         // calculate frequency stability
@@ -82,18 +86,30 @@ object Algorithm {
                 val dt = (state.relTime * 1e-9f - prev.time)
 
                 // calculate speed = prevSpeed + stabilityFactor * gravityFactor
-                val goodness = (frequencyFunction(freq.f * 2) * shape.factor * 0.5f) + (stability.factor * 0.5f)
-                val acc = accelerationRange(prev.speed).forFactor(goodness)
+                val a = (frequencyFunction(freq.f * 2) * shape.factor * 0.5f)
+                val b = (stability.factor * 0.5f)
+                val goodness = if(freq.time == null || state.relTime * 1e-9f - freq.time < 4f) {
+                    Math.min(1f, Math.max(0f, a + b + 0.1f))
+                } else 0f
+                val range = accelerationRange(prev.speed)
+                val acc = range.forFactor(goodness)
                 val speed = prev.speed + acc * dt
                 val distance = prev.distance + speed * dt
 
-                ExternalState(distance, state.relTime * 1e-9f, speed, measures)
+                val s = ExternalState(distance, state.relTime * 1e-9f, speed, measures)
+                s.extra.addProperty("goodness", goodness)
+                s.extra.addProperty("acc", acc)
+                s.extra.addProperty("goodness_a", a)
+                s.extra.addProperty("goodness_b", b)
+                s.extra.addProperty("range_min", range.min)
+                s.extra.addProperty("range_max", range.max)
+                s
             }
             .debug("external state")
             .publish { it
                 // take until distance + 1
                 .takeWhile { it.distance < match.distance }
-                .concatWith(it.take(1))
+                .concatWith(it.take(1).map { it.copy(distance = match.distance.toFloat()) })
             }
     }
 
@@ -121,11 +137,15 @@ object Algorithm {
             return min + (max - min) * factor
         }
     }
+
     fun accelerationRange(speed: Float): AccelerationRange {
-        return if(speed < 10) {
-            AccelerationRange(speed / 5.3f, 2f - speed / 5.3f)
+        val maxSpeed = 25f
+        val maxAcc = 4f
+        val half = maxSpeed / maxAcc
+        return if(speed < maxSpeed) {
+            AccelerationRange(-speed / half, maxAcc - speed / half)
         } else {
-            AccelerationRange(10f / 5.3f, 2f - 10f / 5.3f)
+            AccelerationRange(-maxSpeed / half, 0f)
         }
     }
 }

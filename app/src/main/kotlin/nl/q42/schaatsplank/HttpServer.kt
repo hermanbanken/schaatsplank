@@ -31,10 +31,14 @@ class HttpServer(hostname: String, val port: Int, val context: Context): NanoHTT
             return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.app))
         } else if(session.uri == "/vue.js") {
             return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.vue))
+        } else if(session.uri == "/ready.jpg") {
+            return newChunkedResponse(Status.OK, "image/jpeg", context.resources.openRawResource(R.raw.ready))
         } else if(session.uri == "/style.css") {
             return newChunkedResponse(Status.OK, "text/css", context.resources.openRawResource(R.raw.style))
         } else if(session.uri == "/smoothie.js") {
             return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.smoothie))
+        } else if(session.uri == "/crop.m4v") {
+            return newChunkedResponse(Status.OK, "video/mp4", context.resources.openRawResource(R.raw.crop))
         } else {
             return newFixedLengthResponse(session.uri)
         }

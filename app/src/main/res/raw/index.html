@@ -4,6 +4,10 @@
     <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
+<video id="film" preload v-show="mode > 0" transition="fade" loop>
+    <source id='mp4' src="crop.m4v" type="video/mp4" />
+</video>
+
 <div class="topleft" v-if="mode == 0">
     <template v-for="distance in distances">
         <knop v-on:click="start(distance.value)">Start {{ distance.value}}</knop>
@@ -11,14 +15,14 @@
 </div>
 <div class="topleft" v-if="mode > 0">
     <nos>{{match.time | time}}</nos>
-    <nos>{{match.distance}}m</nos>
+    <nos>{{match.distance.toFixed(0)}}m</nos>
 </div>
 
 <div class="topleft" v-if="mode == -1">
     <knop v-on:click="home()">Terug</knop>
 </div>
 
-<div class="bottomleft" v-if="mode == 1">
+<div class="bottomleft" v-if="mode >= 1">
     <knop v-on:click="home()">Terug</knop>
 </div>
 
@@ -131,7 +135,11 @@
         </template>
     </table>
 
-    <h1 class='fill' style="margin-bottom:1vw; margin-top:3em">
+    <div style="margin-top:6vw; width: 25%; float: right;">
+        <knop v-on:click="clear_ranking()">Delete All</knop>
+    </div>
+
+    <h1 class='fill' style="margin-bottom:1vw; margin-top:1vw">
         <div class='diagl'></div>
         <a class='th darker' v-on:click="config = !config">Configuratie</a>
         <div class='diagr'></div>
@@ -149,6 +157,17 @@
             <tr class='row-spacing'><td colspan="*"></td></tr>
         </template>
     </table>
+</div>
+
+<div class="centerbox" v-if="mode == 0 && match.time">
+    <h1 class='fill' style="margin-bottom:2vw">
+        <div class='diagl'></div>
+        <div class='th darker'>JOUW RESULTAAT</div>
+        <div class='diagr'></div>
+    </h1>
+    <nos><input v-model="name" placeholder="Vul hier je naam in" debounce="300" /></nos>
+    <nos>{{ match.total_distance }}m</nos>
+    <nos>{{ match.time | time }}</nos>
 </div>
 
 <script src="app.js"></script>
