@@ -198,15 +198,25 @@ new Vue({
   },
   created: function (){
     if(!location.hostname) { return; }
-    this.socket = new WebSocket("ws://"+location.hostname+":8081/")
-    this.socket.addEventListener('message', function(event){
+    this.socket = setupSocket(function(event){
       try {
         this.receive(JSON.parse(event.data));
       } catch(e) {
         this.receive(event.data);
       }
-    }.bind(this));
-    this.socket.addEventListener('open', this.connected);
-    this.socket.addEventListener('close', this.disconnected);
+    }.bind(this), this.connected, this.disconnected);
   }
 })
+
+function setupSocket(message, connected, disconnected) {
+    var socket = new WebSocket("ws://"+location.hostname+":8081/")
+    socket.addEventListener('message', message);
+    socket.addEventListener('open', connected);
+    socket.addEventListener('close', disconnected);
+    socket.addEventListener('close', function(){
+      setTimeout(function(){
+        setupSocket(message, connected, disconnected)
+      }, 3000);
+    });
+    return socket;
+}
