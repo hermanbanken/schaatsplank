@@ -41,7 +41,7 @@
                 android:tint="@color/white"
                 android:layout_gravity="center_horizontal"
                 android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true"/>
+                android:layout_toStartOf="@+id/clients"/>
 
             <TextView
                 android:id="@+id/clients"
@@ -51,7 +51,9 @@
                 android:layout_alignBaseline="@+id/textView"
                 android:layout_alignBottom="@+id/textView"
                 android:layout_alignParentEnd="true"
-                android:text="0"/>
+                android:text="0"
+                android:paddingStart="5dp"
+                android:textColor="@color/white"/>
         </RelativeLayout>
 
     </LinearLayout>
