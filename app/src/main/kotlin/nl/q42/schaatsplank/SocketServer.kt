@@ -1,13 +1,18 @@
 package nl.q42.schaatsplank
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
 import rx.Observable
 import rx.Subscription
 import rx.lang.kotlin.ReplaySubject
+import rx.subscriptions.CompositeSubscription
 import java.net.InetSocketAddress
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Herman Banken, Q42
@@ -46,7 +51,10 @@ class SocketServer(val context: Context, val broadcast: Observable<String>, val 
 
     fun ensureSubscribed() {
         if(subscription == null) {
-            subscription = broadcast.subscribe { sendToAll(it) }
+            subscription = CompositeSubscription(
+                broadcast.subscribe { sendToAll(it) },
+                batteryObs().subscribe { sendToAll("""{ "event": "battery", "value": $it }""") }
+            )
         }
     }
 
@@ -72,5 +80,17 @@ class SocketServer(val context: Context, val broadcast: Observable<String>, val 
                 c.send( text );
             }
         }
+    }
+
+    fun batteryObs(): Observable<Float> {
+        return Observable.interval(30, TimeUnit.SECONDS).map { battery() }
+    }
+
+    fun battery(): Float {
+        val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val batteryStatus = context.registerReceiver(null, ifilter)
+        val level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+        val scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+        return level / scale.toFloat()
     }
 }
