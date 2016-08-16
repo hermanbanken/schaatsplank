@@ -46,7 +46,6 @@ object Algorithm {
         val frequency = obs
             .map { it.first }
             .filter { it.where != Where.MIDWAY }
-            .debug("state")
             .scan<Pair<Float,State>>(2f to State(0f, 0f, 0L), Func2 { prev, state ->
                 val pState = prev.second
                 val dt = (state.relTime - pState.relTime) * 1e-9f
@@ -76,7 +75,7 @@ object Algorithm {
         .map { Stability(it) }
         .debug { s -> (s as Stability).factor.format(3) }
 
-        val freqStab = freqStability.withLatestFrom(frequency, { a, b -> a to b })
+        val freqStab = freqStability.startWith(Stability(0f)).withLatestFrom(frequency.startWith(Frequency(0f)), { a, b -> a to b })
 
         return obs
             .withLatestFrom(freqStab, { a, b -> a.first to Triple(a.second, b.first, b.second) })
@@ -88,7 +87,9 @@ object Algorithm {
                 // calculate speed = prevSpeed + stabilityFactor * gravityFactor
                 val a = (frequencyFunction(freq.f * 2) * shape.factor * 0.5f)
                 val b = (stability.factor * 0.5f)
-                val goodness = if(freq.time == null || state.relTime * 1e-9f - freq.time < 4f) {
+                val goodness = if(freq.f == 0f && stability.factor == 0f) {
+                  0f
+                } else if (freq.time == null || state.relTime * 1e-9f - freq.time < 1f) {
                     Math.min(1f, Math.max(0f, a + b + 0.1f))
                 } else 0f
                 val range = accelerationRange(prev.speed)
@@ -105,7 +106,6 @@ object Algorithm {
                 s.extra.addProperty("range_max", range.max)
                 s
             }
-            .debug("external state")
             .publish { it
                 // take until distance + 1
                 .takeWhile { it.distance < match.distance }

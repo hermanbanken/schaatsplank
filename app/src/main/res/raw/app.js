@@ -1,4 +1,7 @@
 Vue.filter('time', function (value) {
+  if(!value || isNaN(value)) {
+    return "-"
+  }
   var minutes = Math.floor(value / 60)
   var seconds = Math.floor(value % 60)
   var millis = value % 1
@@ -28,6 +31,9 @@ Vue.component('nos', Vue.extend({
 
 Vue.component('knop', Vue.extend({
   template: "<nos><button v-on:click=\"$dispatch('click')\"><slot></slot></button></nos>"
+}))
+Vue.component('btn', Vue.extend({
+  template: "<div class='fill btn' v-on:click=\"$dispatch('click')\"><div class='diagl'></div><div class='th darker'><slot></slot></div><div class='diagr'></div></div>"
 }))
 
 var film = document.getElementById("film");
@@ -89,20 +95,21 @@ new Vue({
         this.match.distance = data.distance;
       }
       if(data.event == 'start') {
+        this.mode = 1;
         this.name = "";
-        this.match = { time: 0, distance: 0, done: false };
+        this.match = { time: 0, total_distance: data.distance, distance: 0, done: false };
         var p = film.play();
         if (p && (typeof Promise !== 'undefined') && (p instanceof Promise)) {
-            p.catch((e) => {
+            p.catch(function (e) {
                 console.log("Caught pending play exception - continuing ("+e+"})");
-            });
+            })
         }
       }
       if(data.event == 'done') {
         film.currentTime = 0;
-        film.paulse();
+        film.pause();
         this.match.done = true;
-        this.mode = 0;
+        this.mode = 1;
       }
       if(data.event == 'message') {
         return this.showMessage(data.message);
@@ -116,16 +123,20 @@ new Vue({
         }, 4000)
         window.$vm = this;
       }
+      if(data.event == 'remove') {
+        this.skaters.splice(data.number, 1);
+      }
       if(data.event == 'clear') {
         this.skaters = [];
         this.results = [];
       }
       if(data.result) {
-        if(!data.time) data.time = data.result;
-        var existing = this.skaters.find(function(s){ s.name == data.name });
-        if(!existing) {
-          this.skaters.push({ name: data.name });
-        }
+        this.results.forEach(function(r, i) {
+         if(data.number && r.number == data.number) {
+          this.results.$set(i, data)
+         }
+        }.bind(this))
+        this.match.number = Math.max(this.match.number || 0, data.number);
         this.results.push(data);
       }
     },
@@ -151,10 +162,12 @@ new Vue({
     menu: function(){
       if(this.mode == 0) this.mode = -1;
     },
-    start: function(distance){
-      if(this.mode == 0) this.mode = 1;
-      this.send({ event: 'start', distance: distance })
+    start: function(distance, name){
+      var packet = { event: 'start', distance: distance }
+      if(name) { packet.name = name }
+      this.send(packet)
       this.match.total_distance = distance;
+      this.mode = 1;
     },
     home: function(){
       if(this.mode == 1 && confirm("Sure?")) {
@@ -164,46 +177,71 @@ new Vue({
     },
     clear_ranking: function(){
       this.send({ event: "clear_ranking" })
+    },
+    save: function (skater) {
+      skater.results.forEach(function(data){
+        data.result && this.send({
+          event: "name",
+          name: skater.name,
+          number: data.result.number,
+        })
+      }.bind(this))
     }
   },
   computed: {
+    // Skaters
+    skaters: function () {
+      var skaters = {}
+      this.results.forEach(function(result) {
+        result.time = result.time || result.result
+        if(result.name) {
+          skaters[result.name] = skaters[result.name] || { name: result.name, results: [] }
+          skaters[result.name].results.push(result)
+        } else {
+          skaters[result.number] = { name: "anonymous "+result.number, results: [result] }
+        }
+      });
+      return Object.keys(skaters).map(function(key){ return skaters[key] });
+    },
     // Rankings
     rankings: function () {
       var self = this;
       return self.skaters.map(function(sk){
         var index = {};
-        var pts = 0;
-        var distances = 0;
-        self.results.forEach(function(r){
-          if(r.name == sk.name) {
+        sk.results.forEach(function(r){
+          if(!index[r.distance]) {
             index[r.distance] = r;
-            pts += r.time / r.distance * 500;
-            distances += 1;
+          } else if(index[r.distance].time > r.time) {
+            index[r.distance] = r;
           }
         });
         var results = self.distances.map(function(d){
           return {
             distance: d.value,
-            result: index[d.value],
+            original: index[d.value],
             shown: d.shown,
           }
         });
+        var withResults = results.filter(function(r){ return r.original })
+        var pts = withResults.reduce(function(p, r){ return p + (r.original.time || r.original.result) / r.original.distance * 500 }, 0)
         return {
           name: sk.name,
           results: results,
           pts: pts,
-          distances: distances,
+          distances: withResults.length,
         }
       })
-    }
-  },
-  watch: {
-    "name": function(name) {
-      this.send({
-        event: "name",
-        name: name
-      })
-    }
+    },
+    latest: function() {
+      for(var i = 0; i < this.skaters.length; i++) {
+        for(var j = 0; j < this.skaters[i].results.length; j++) {
+          if(this.skaters[i].results[j].number == this.match.number) {
+            return this.skaters[i];
+          }
+        }
+      }
+      return false;
+    },
   },
   created: function (){
     if(!location.hostname) { return; }

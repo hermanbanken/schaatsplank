@@ -74,6 +74,10 @@ div#form, #message {
     padding: 1vw;
 }
 
+.btn { text-align: center; }
+.time .btn { display: none; }
+.time:hover .btn { display: flex; }
+
 /*button {
     font-size: 5vw;
     padding: 1vw 3vw;
@@ -92,6 +96,8 @@ div#form, #message {
 
 .darker { background: #4360AD; }
 .lighter { background: #6184BC; }
+.accent.darker, .accent .darker { background: #F5A623 }
+.accent.lighter, .accent .lighter { background: #F5B449 }
 
 .diagl, .diagr {
   display: block;
@@ -112,6 +118,7 @@ div#form, #message {
   border-left-color: #4360AD;
   border-bottom-color: #6184BC;
 }
+.accent .diagr, .accent.diagr { border-bottom-color: #F5B449; border-left-color: #F5A623; }
 
 .diagl {
   float: left;
@@ -120,6 +127,7 @@ div#form, #message {
   border-left-color: #6184BC;
   border-bottom-color: #4360AD;
 }
+.accent .diagl, .accent.diagl { border-bottom-color: #F5A623; border-left-color: #F5B449; }
 
 td.time, th.time {
   text-align: right;
@@ -173,10 +181,14 @@ h1.fill .th {
 }
 
 .darker input, .lighter input {
-  background: rgba(255,255,255,0.2);
+  background: transparent;
   color: white;
-  font-size: 1em;
+  font-size: 1.5vw;
   border: none;
+}
+
+.darker input:focus, .lighter input:focus {
+  background: rgba(255,255,255,0.2);
 }
 
 a {
@@ -200,6 +212,7 @@ a {
   text-align: center;
   color: white;
   width: 100%;
+  margin: 0;
 }
 h1.fill.nos .th {
     padding: 0;

@@ -23,8 +23,9 @@ class Run(val context: Context, val acceleration: Observable<SensorEvent>, val g
     val startRequests = PublishSubject<Match>()
     val stopRequests = PublishSubject<Unit>()
 
+    val store = Store(context)
     val gson = Gson()
-    val log = Store.read(context).toMutableList()
+    val log = store.all
     private val stdOut: PublishSubject<String> = PublishSubject()
     val observable: Observable<String>
 
@@ -41,9 +42,8 @@ class Run(val context: Context, val acceleration: Observable<SensorEvent>, val g
         val stateEvents = states
             .withLatestFrom(gravityFactor, { state, gravity -> state to Gravity(gravity) })
 
-        var state: ExternalState = ExternalState(0f, 0f, 0f, null)
-
-        observable = startRequests.switchMap { match ->
+        observable = startRequests.switchMap { request ->
+            val match = store.add(request)
             val messages = arrayOf(
                 "Skaters, go to the start!",
                 "Ready?!",
@@ -51,19 +51,19 @@ class Run(val context: Context, val acceleration: Observable<SensorEvent>, val g
             Observable.interval(1, 3, TimeUnit.SECONDS)
                 .zipWith(messages.toObservable(), { t, m -> m })
                 .map { gson.toJson(it) }
-                .concatWith(Observable.just("""{ "event": "start" }"""))
+                .concatWith(Observable.just("""{ "event": "start", "distance": ${match.distance} }"""))
                 .concatWith(stateEvents
                     .onBackpressureDrop()
                     .match(match)
-                    .doOnNext { state = it }
-                    .map { gson.toJson(it) }
-                )
+                    .publish {
+                        it.last().map { state ->
+                            val final = match.copy(result = state.time)
+                            store.update(final)
+                            gson.toJson(final)
+                        }
+                        .mergeWith(it.map { gson.toJson(it) })
+                    })
                 .concatWith(Observable.just("""{ "event": "done" }"""))
-                .doOnCompleted {
-                    val result = match.copy(number = log.size, result = state.time)
-                    log.add(result)
-                    Store.write(context, result)
-                }
                 .takeUntil(stopRequests)
         }
         .mergeWith(stdOut)
@@ -71,38 +71,41 @@ class Run(val context: Context, val acceleration: Observable<SensorEvent>, val g
 
     fun receive(message: String) {
         val obj = gson.fromJson<JsonObject>(message, typeToken<JsonObject>())
-        if(obj.has("event") && obj.get("event").asString == "start") {
-            val name = if(obj.has("name")) obj.get("name").asString else "anonymous"
+        if(obj.getOpt("event") == "start") {
+            val name = if(obj.has("name")) obj.get("name").asString else ""
             val mail = if(obj.has("mail")) obj.get("mail").asString else null
             val dist = obj.get("distance").asInt
             startRequests.onNext(Match(name = name, email = mail, distance = dist))
         }
-        if(obj.has("event") && obj.get("event").asString == "stop") {
+        if(obj.getOpt("event") == "stop") {
             stopRequests.onNext(Unit)
         }
-        if(obj.has("event") && obj.get("event").asString == "name") {
-            val m = log.removeAt(log.size - 1).copy(name = obj.get("name").asString)
-            log.add(m)
-            store()
+        if(obj.getOpt("event") == "name" && obj.get("number") != null) {
+            val number = obj.get("number").asInt
+            if(number > store.all.size || number < 0) {
+                return
+            }
+            val name = obj.getOpt("name") ?: store.all[number].name
+            val updated = store.all[number].copy(name = name)
+            store.update(updated)
+            stdOut.onNext(gson.toJson(updated))
         }
-        if(obj.has("event") && obj.get("event").asString == "clear_ranking") {
-            Store.overwrite(context, "")
-            store()
+        if(obj.getOpt("event") == "remove" && obj.get("number") != null) {
+            val number = obj.get("number").asInt
+            if(number > store.all.size || number < 0) {
+                store.remove(number)
+                stdOut.onNext("""{ "event": "remove", "number": $number }""")
+            }
         }
-    }
-
-    fun store() {
-        Store.overwrite(context, log.map { gson.toJson(it) }.joinToString("\n"))
-        stdOut.onNext("""{ "event": "clear" }""")
-        log.forEach {
-            stdOut.onNext(gson.toJson(it))
+        if(obj.getOpt("event") == "clear_ranking") {
+            store.clear()
+            stdOut.onNext("""{ "event": "clear" }""")
         }
     }
 
     fun onConnect(): Observable<String> {
-        val log = Store.read(context)
         return Observable.from(
-            arrayOf("""{ "event": "clear" }""").plus(log.map { gson.toJson(it) })
+            arrayOf("""{ "event": "clear" }""").plus(store.all.map { gson.toJson(it) })
         )
     }
 }
@@ -125,10 +128,13 @@ fun FloatArray?.string(): String {
     return this.map { v -> String.format(Locale.US, "%5.3f", v) }.joinToString(prefix = "[", postfix = "]")
 }
 
+fun JsonObject.getOpt(key: String): String? {
+    return if(this.has(key)) this.get(key).asString else null
+}
 
 enum class Where {
     LEFT, MIDWAY, RIGHT
 }
 
-data class Match(val number: Int = -1, val name: String, val email: String? = null, val distance: Int = 500, val result: Float? = 0f)
+data class Match(val number: Int = -1, val name: String, val email: String? = null, val distance: Int = 500, val result: Float? = 0f, val date: Date = Date())
 data class Message(val message: String, val event: String = "message")
