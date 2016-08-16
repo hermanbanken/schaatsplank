@@ -22,6 +22,7 @@ import fi.iki.elonen.NanoHTTPD
 import rx.Observable
 import rx.lang.kotlin.ReplaySubject
 import rx.subjects.BehaviorSubject
+import rx.subjects.PublishSubject
 import rx.subjects.ReplaySubject
 import java.io.IOException
 import java.math.BigInteger
@@ -41,9 +42,10 @@ class SchaatsplankService: Service(), SensorEventListener {
 
     private val acceleration: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
     private val gravity: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
-    val address: ReplaySubject<String> = ReplaySubject(1)
+    val address: ReplaySubject<String?> = ReplaySubject(1)
     val logs: ReplaySubject<String> = ReplaySubject(10)
     val clients: ReplaySubject<Int> = ReplaySubject(1)
+    val clientMessages: BehaviorSubject<String> = BehaviorSubject.create()
 
     var run: Run? = null
     var output: Observable<String>? = null
@@ -84,17 +86,6 @@ class SchaatsplankService: Service(), SensorEventListener {
         sensorManager?.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_GAME)
         sensorManager?.registerListener(this, acclSensor, SensorManager.SENSOR_DELAY_GAME)
 
-//        this.registerReceiver(object : BroadcastReceiver() {
-//            override fun onReceive(context: Context?, intent: Intent?) {
-//                val extraWifiState: Int? = intent?.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_UNKNOWN)
-//                when(extraWifiState) {
-//                    WifiManager.WIFI_STATE_DISABLED, WifiManager.WIFI_STATE_DISABLING -> stopServers()
-//                    WifiManager.WIFI_STATE_ENABLED -> setupServers()
-//                }
-//                setupServers()
-//            }
-//        }, IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION))
-
         // Monitor connectivity status
         this.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -104,7 +95,10 @@ class SchaatsplankService: Service(), SensorEventListener {
                     info.isConnectedOrConnecting && info.type == ConnectivityManager.TYPE_WIFI
                 } ?: false
                 log("Network status changed: ${if(hasWifi) "connected" else "disconnected"}")
-                if(hasWifi) { setupServers() } else { stopServers() }
+                if(hasWifi) { setupServers() } else {
+                    address.onNext(null)
+                    stopServers()
+                }
             }
         }, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
 
@@ -160,7 +154,7 @@ class SchaatsplankService: Service(), SensorEventListener {
                         socketServer = SocketServer(
                                 this,
                                 output,
-                                { run.receive(it) },
+                                { run.receive(it); clientMessages.onNext(it) },
                                 { run.onConnect() },
                                 port,
                                 ip)

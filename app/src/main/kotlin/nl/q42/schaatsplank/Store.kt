@@ -2,6 +2,7 @@ package nl.q42.schaatsplank
 
 import android.content.Context
 import android.util.Log
+import com.github.salomonbrys.kotson.fromJson
 import com.github.salomonbrys.kotson.typeToken
 import com.google.gson.Gson
 import java.io.File
@@ -12,20 +13,52 @@ import java.io.IOException
 /**
  * @author Herman Banken, Q42
  */
-object Store {
+class Store(val context: Context) {
     private val gson: Gson = Gson()
+    private val data = mutableListOf<Match>()
 
-    fun read(context: Context): List<Match> {
+    init {
+        data.addAll(read(context))
+    }
+
+    val all: List<Match> get() = data
+
+    fun add(match: Match): Match {
+        val n = match.copy(number = data.size)
+        data.add(n)
+        sync()
+        return n
+    }
+
+    fun update(match: Match) {
+        if(match.number > 0 && match.number < data.size) {
+            data[match.number] = match
+        sync()
+        }
+    }
+
+    fun remove(index: Int) {
+        data.removeAt(index)
+        sync()
+    }
+
+    fun clear() {
+        data.clear()
+        sync()
+    }
+
+    fun sync() {
+        overwrite(context, gson.toJson(data))
+    }
+    
+    private fun read(context: Context): List<Match> {
         val file = File(context.filesDir, "ranking.txt")
         if(!file.exists()) {
             return listOf()
         }
         val reader = FileReader(file)
         try {
-            return reader.readLines().flatMap {
-                val match = gson.fromJson<Match?>(it, typeToken<Match>())
-                (if(match != null) arrayOf(match) else arrayOf()).asIterable()
-            }
+            return gson.fromJson<List<Match>>(reader)
         } catch(e: IOException) {
             Log.e(javaClass.simpleName, "error while reading", e)
             return listOf()
@@ -34,23 +67,7 @@ object Store {
         }
     }
 
-    fun write(context: Context, result: Match) {
-        val file = File(context.filesDir, "ranking.txt")
-        try {
-            val writer = FileWriter(file, true)
-            if (file.length() > 0) {
-                writer.appendln()
-            }
-            writer.append(gson.toJson(result))
-            writer.flush()
-            writer.close()
-        } catch(e: IOException) {
-            Log.e(javaClass.simpleName, "error while saving", e)
-        }
-    }
-
-
-    fun overwrite(context: Context, body: String) {
+    private fun overwrite(context: Context, body: String) {
         val file = File(context.filesDir, "ranking.txt")
         try {
             val writer = FileWriter(file, false)

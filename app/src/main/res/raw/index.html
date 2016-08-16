@@ -72,6 +72,13 @@
     </h1>
 </template>
 
+<template name="btn">
+    <div class='fill'>
+        <div class='diagl'></div>
+        <div class='th darker'><slot></slot></div>
+        <div class='diagr'></div>
+    </div>
+</template>
 
 <template name="nos">
     <h1 class='fill' style="margin: 0 0 2vw">
@@ -114,17 +121,19 @@
         </tr></thead>
         <template v-for="skater in rankings | orderBy bestRanking">
             <tr class='row-spacing'><td colspan="*"></td></tr>
-            <tr class='lighter'>
+            <tr class='lighter' v-bind:class="{accent: match.done && latest && latest.name == skater.name}">
                 <td class="darker">
                     {{ $index + 1 }}
                     <div class='diagr'></div>
                 </td>
-                <td><span>{{ skater.name }}</span></td>
-                <td v-for="rank in skater.results" class='darker time'>
+                <td><input v-model="skater.name" v-on:keyup.enter="save(skater)" /></td>
+                <td v-for="rank in skater.results" class='time' v-bind:class="{darker: rank.original}">
+                    <div v-if="rank.original">
                     <div class='diagl'></div>
-                    <template v-if="rank.result">{{ rank.result.time | time }}</template>
-                    <!--<span v-else><button>Start</button></span>-->
+                    {{ rank.original.time | time }}
                     <div class='diagr'></div>
+                    </div>
+                    <btn v-else v-on:click="start(rank.distance, skater.name)">Start</btn>
                 </td>
                 <td class='time darker'>
                     <div class='diagl'></div>
@@ -157,17 +166,6 @@
             <tr class='row-spacing'><td colspan="*"></td></tr>
         </template>
     </table>
-</div>
-
-<div class="centerbox" v-if="mode == 0 && match.done">
-    <h1 class='fill' style="margin-bottom:2vw">
-        <div class='diagl'></div>
-        <div class='th darker'>JOUW RESULTAAT</div>
-        <div class='diagr'></div>
-    </h1>
-    <nos><input v-model="name" placeholder="Vul hier je naam in" debounce="300" /></nos>
-    <nos>{{ match.total_distance }}m</nos>
-    <nos>{{ match.time | time }}</nos>
 </div>
 
 <script src="app.js"></script>
