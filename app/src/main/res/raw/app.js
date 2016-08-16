@@ -109,7 +109,7 @@ new Vue({
         film.currentTime = 0;
         film.pause();
         this.match.done = true;
-        this.mode = 1;
+        this.mode = -1;
       }
       if(data.event == 'message') {
         return this.showMessage(data.message);
