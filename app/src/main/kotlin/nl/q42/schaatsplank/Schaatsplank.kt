@@ -34,6 +34,8 @@ class Schaatsplank: Activity() {
     var connection: ServiceConnection? = null
     val gson = Gson()
 
+    val imageStarted by lazy { resources.getDrawable(R.drawable.started, theme) }
+
     override fun onStart() {
         super.onStart()
         connection = object: ServiceConnection {
@@ -79,7 +81,7 @@ class Schaatsplank: Activity() {
                             }
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe {
-                                instruction.image = resources.getDrawable(R.drawable.started, theme)
+                                instruction.image = imageStarted
                             }
 //                        instance.output
 //                                ?.throttleFirst(200, TimeUnit.MILLISECONDS)
