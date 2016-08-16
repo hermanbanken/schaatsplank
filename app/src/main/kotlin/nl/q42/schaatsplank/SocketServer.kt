@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.util.Log
 import org.java_websocket.WebSocket
 import org.java_websocket.handshake.ClientHandshake
 import org.java_websocket.server.WebSocketServer
@@ -21,6 +22,10 @@ class SocketServer(val context: Context, val broadcast: Observable<String>, val 
     private var subscription: Subscription? = null
     private val clientsSubject = ReplaySubject<Int>(1)
     val clients: Observable<Int> = clientsSubject
+
+    init {
+        Log.i(javaClass.simpleName, "Started SocketServer $ip $port")
+    }
 
     override fun onOpen(conn: WebSocket?, handshake: ClientHandshake?) {
         clientsSubject.onNext(connections().size)
@@ -44,6 +49,7 @@ class SocketServer(val context: Context, val broadcast: Observable<String>, val 
     }
 
     override fun stop(timeout: Int) {
+        connections().forEach { it.close() }
         subscription?.unsubscribe()
         subscription = null
         super.stop(timeout)
@@ -53,7 +59,8 @@ class SocketServer(val context: Context, val broadcast: Observable<String>, val 
         if(subscription == null) {
             subscription = CompositeSubscription(
                 broadcast.subscribe { sendToAll(it) },
-                batteryObs().subscribe { sendToAll("""{ "event": "battery", "value": $it }""") }
+                batteryObs().subscribe { sendToAll("""{ "event": "battery", "value": $it }""") },
+                Observable.interval(3, TimeUnit.SECONDS).subscribe { sendToAll("""{ "event": "ping" }""") }
             )
         }
     }

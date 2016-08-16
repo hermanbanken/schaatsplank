@@ -107,6 +107,15 @@ new Vue({
       if(data.event == 'message') {
         return this.showMessage(data.message);
       }
+      if(data.event == 'ping') {
+        this.ping = new Date();
+        clearTimeout(this.pingTimeout);
+        this.pingTimeout = setTimeout(function(){
+          console.log("maybe gone");
+          window.t = this;
+        }, 4000)
+        window.$vm = this;
+      }
       if(data.event == 'clear') {
         this.skaters = [];
         this.results = [];
