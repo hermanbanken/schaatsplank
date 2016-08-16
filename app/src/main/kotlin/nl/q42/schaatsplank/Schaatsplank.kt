@@ -36,7 +36,6 @@ class Schaatsplank: Activity() {
                     disposable = CompositeSubscription(
                         instance.logs
                             .observeOn(AndroidSchedulers.mainThread())
-                            .scan("", { p, n -> n + "\n" + p })
                             .startWith("ready")
                             .subscribe({
                                 data.text = it

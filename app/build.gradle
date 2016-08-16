@@ -7,7 +7,7 @@ android {
         release {
             keyAlias 'schaatsplankkey'
             keyPassword '9rx2YBasgFVKpqdqCupAYYsDmH'
-            storeFile file('keystore.jks')
+            storeFile file('../keystore.jks')
             storePassword '9rx2YBasgFVKpqdqCupAYYsDmH'
         }
     }
