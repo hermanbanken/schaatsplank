@@ -98,12 +98,14 @@ object Algorithm {
                 val distance = prev.distance + speed * dt
 
                 val s = ExternalState(distance, state.relTime * 1e-9f, speed, measures)
-                s.extra.addProperty("goodness", goodness)
+                s.extra.addProperty("gravityfactor", shape.factor)
                 s.extra.addProperty("acc", acc)
-                s.extra.addProperty("goodness_a", a)
-                s.extra.addProperty("goodness_b", b)
-                s.extra.addProperty("range_min", range.min)
-                s.extra.addProperty("range_max", range.max)
+//                s.extra.addProperty("goodness", goodness)
+//                s.extra.addProperty("acc", acc)
+//                s.extra.addProperty("goodness_a", a)
+//                s.extra.addProperty("goodness_b", b)
+//                s.extra.addProperty("range_min", range.min)
+//                s.extra.addProperty("range_max", range.max)
                 s
             }
             .publish { it

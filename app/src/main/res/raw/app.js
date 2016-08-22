@@ -62,12 +62,16 @@ new Vue({
     match: {
       time: 0,
       distance: 0,
+      gravityfactor: 0,
+      speed: 0,
+      acc: 0,
     },
     name: "",
     config: false,
     socket: null,
     mode: 0,
     distances: [
+      { value: 5, name: 'test', shown: true },
       { value: 500, name: 'infomarkt', shown: true },
       { value: 1000, name: 'sportmarkt', shown: false },
     ],
@@ -94,10 +98,19 @@ new Vue({
       if(data.distance) {
         this.match.distance = data.distance;
       }
+      if(data.speed) {
+        this.match.speed = data.speed
+      }
+      if(data.extra && data.extra.gravityfactor) {
+        this.match.gravityfactor = data.extra.gravityfactor
+      }
+      if(data.extra && data.extra.acc) {
+        this.match.acc = data.extra.acc
+      }
       if(data.event == 'start') {
         this.mode = 1;
         this.name = "";
-        this.match = { time: 0, total_distance: data.distance, distance: 0, done: false };
+        this.match = { time: 0, total_distance: data.distance, distance: 0, done: false, gravityfactor: 0, speed: 0, acc: 0 };
         var p = film.play();
         if (p && (typeof Promise !== 'undefined') && (p instanceof Promise)) {
             p.catch(function (e) {

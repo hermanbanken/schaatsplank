@@ -289,3 +289,7 @@ h1.fill.nos .th {
       opacity: 0;
     }
 }
+
+sup {
+    line-height: 0.5;
+}

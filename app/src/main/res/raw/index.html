@@ -16,6 +16,9 @@
 <div class="topleft" v-if="mode > 0">
     <nos>{{match.time | time}}</nos>
     <nos>{{match.distance.toFixed(0)}}m</nos>
+    <nos>S {{match.speed && match.speed.toFixed(0)}} m/s</nos>
+    <nos>A {{match.acc && match.acc.toFixed(2)}} m/s<sup>2</sup></nos>
+    <nos>H {{match.gravityfactor.toFixed(2)}}</nos>
 </div>
 
 <div class="topleft" v-if="mode == -1">
