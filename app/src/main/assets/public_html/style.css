@@ -42,6 +42,13 @@ video {
 .bottomleft.wide {
     width: 30vw;
 }
+.topright {
+    position: absolute;
+    right: 3vw;
+    top: 3vw;
+    font-size: 4vw;
+    z-index: 1000;
+}
 
 .circle {
     width: 6vw;

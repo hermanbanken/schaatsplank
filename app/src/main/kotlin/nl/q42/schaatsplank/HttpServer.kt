@@ -26,23 +26,32 @@ class HttpServer(hostname: String, val port: Int, val context: Context): NanoHTT
     }
 
     fun handle(session: IHTTPSession): Response {
-        if (session.uri == "/") {
-            return newChunkedResponse(Status.OK, "text/html", context.resources.openRawResource(R.raw.index))
-        } else if (session.uri == "/app.js") {
-            return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.app))
-        } else if (session.uri == "/vue.js") {
-            return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.vue))
-        } else if (session.uri == "/ready.jpg") {
-            return newChunkedResponse(Status.OK, "image/jpeg", context.resources.openRawResource(R.raw.ready))
-        } else if (session.uri == "/style.css") {
-            return newChunkedResponse(Status.OK, "text/css", context.resources.openRawResource(R.raw.style))
-        } else if (session.uri == "/smoothie.js") {
-            return newChunkedResponse(Status.OK, "text/javascript", context.resources.openRawResource(R.raw.smoothie))
-        } else if (session.uri == "/crop.m4v") {
-            return newChunkedResponse(Status.OK, "video/mp4", context.resources.openRawResource(R.raw.crop))
-        } else {
-            return newFixedLengthResponse(session.uri)
+        val uri = when (session.uri) {
+            "/" -> "index.html"
+            else -> { session.uri.trim('/') }
         }
+
+        for (dir in arrayOf("", "vendor")) {
+            if(uri.indexOf(dir) != 0) { continue }
+            val path = "public_html/$dir".trim('/')
+            val file = uri.substring(dir.length).trim('/')
+            if(context.resources.assets.list(path).contains(file)) {
+                val ins = context.resources.assets.open("$path/$file")
+                return newChunkedResponse(Status.OK, mime(file), ins)
+            }
+        }
+        return newFixedLengthResponse(session.uri)
+    }
+
+    private fun mime(file: String): String = when (file.substring(file.lastIndexOf(".")+1)) {
+        "html" -> "text/html"
+        "css" -> "text/css"
+        "js" -> "text/javascript"
+        "jpg" -> "image/jpeg"
+        "jpeg" -> "image/jpeg"
+        "m4v" -> "video/mp4"
+        "mp4" -> "video/mp4"
+        else -> { "application/octet-stream" }
     }
 
 }

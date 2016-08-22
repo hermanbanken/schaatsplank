@@ -86,6 +86,7 @@ new Vue({
     ],
     message: null,
     hasMessage: false,
+    offline: false,
   },
   methods: {
     send: function (data) {
@@ -154,10 +155,11 @@ new Vue({
       }
     },
     connected: function (event) {
-        console.log("connect");
+      this.offline = false
     },
     disconnected: function (event) {
-        console.log("disconnect", event.code, event.reason, event.wasClean);
+      this.offline = true;
+      console.log("disconnect", event.code, event.reason, event.wasClean);
     },
     // Sorts
     bestRanking: function (a, b) {
@@ -199,7 +201,28 @@ new Vue({
           number: data.result.number,
         })
       }.bind(this))
-    }
+    },
+
+    reconnect: function() {
+      var url = "ws://" + (location.hostname || "127.0.0.1") + ":8081/"
+      var message = function(event){
+        try {
+          this.receive(JSON.parse(event.data));
+        } catch(e) {
+          this.receive(event.data);
+        }
+      }.bind(this);
+
+      var retry = function(){
+        setTimeout(this.reconnect.bind(this), 3000);
+      }.bind(this)
+
+      var socket = this.socket = new WebSocket(url)
+      socket.addEventListener('message', message);
+      socket.addEventListener('open', this.connected);
+      socket.addEventListener('close', this.disconnected);
+      socket.addEventListener('close', retry);
+    },
   },
   computed: {
     // Skaters
@@ -257,26 +280,35 @@ new Vue({
     },
   },
   created: function (){
-    if(!location.hostname) { return; }
-    this.socket = setupSocket(function(event){
-      try {
-        this.receive(JSON.parse(event.data));
-      } catch(e) {
-        this.receive(event.data);
-      }
-    }.bind(this), this.connected, this.disconnected);
+    this.reconnect()
   }
-})
+});
 
-function setupSocket(message, connected, disconnected) {
-    var socket = new WebSocket("ws://"+location.hostname+":8081/")
-    socket.addEventListener('message', message);
-    socket.addEventListener('open', connected);
-    socket.addEventListener('close', disconnected);
-    socket.addEventListener('close', function(){
-      setTimeout(function(){
-        setupSocket(message, connected, disconnected)
-      }, 3000);
-    });
-    return socket;
+function Person(svg_selector) {
+  this.svg = Snap(svg_selector);
+  this.parts = ["body", "arms", "head"]
+  this.types = ["deep", "standing"];
+  this.type = 0;
+  this.offsets = [{ transform: "translate(-25,55)" }, { transform: "translate(0,0)" }]
+
+  setInterval(this.move.bind(this), 1000)
+  this.move();
+
+  this.svg.select("#body").attr({
+    strokeWidth: 12,
+  })
+  this.svg.select("#arms").attr({
+    strokeWidth: 12,
+  })
 }
+
+Person.prototype.move = function(){
+  ["body", "arms", "head"].forEach(function(part){
+    var template = this.svg.select("#"+this.types[this.type]+"_"+part);
+    this.svg.select("#"+part).animate({d: template.attr('d') }, 1000);
+    this.svg.select("#"+part).animate(this.offsets[this.type] , 1000);
+  }.bind(this))
+  this.type = (this.type + 1) % 2;
+}
+
+new Person("#person")

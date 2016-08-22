@@ -1,7 +1,8 @@
 <head>
     <title>Schaatsplank</title>
-    <script src="vue.js"></script>
+    <script src="vendor/vue.js"></script>
     <link rel="stylesheet" href="style.css" type="text/css" />
+    <meta content="text/html" charset="utf-8" />
 </head>
 
 <video id="film" preload v-show="mode > 0" transition="fade" loop>
@@ -27,6 +28,10 @@
 
 <div class="bottomleft" v-if="mode >= 1">
     <knop v-on:click="home()">Terug</knop>
+</div>
+
+<div class="topright" v-if="offline">
+    <knop v-on:click="reconnect()">Offline, reconnect</knop>
 </div>
 
 <div class="centered" transition="bounce" v-show="hasMessage">{{message}}</div>
@@ -171,4 +176,32 @@
     </table>
 </div>
 
+<svg viewBox="0 0 40 164" xmlns="http://www.w3.org/2000/svg" style="
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 125px;
+    height: 200px;
+    z-index: 10000;
+    background: red;
+" id="person">
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" id="final">
+  <path id="head" d="M23,30 C31.2842712,30 38,23.2842712 38,15 C38,6.71572875 31.2842712,0 23,0 C14.7157288,0 8,6.71572875 8,15 C8,23.2842712 14.7157288,30 23,30 Z" fill="#D8D8D8"></path>
+  <path id="body" d="M20.5742178,26.25 C18.8771295,33.861263 20.5742175,41.4296875 10.1796866,63.9765625 C-0.214844284,86.5234375 -2.99371527,86.9023438 6.02836759,102.015625 C15.0504505,117.128906 20.5742173,121.003906 20.5742178,125.308594 C20.5742183,129.613281 14.9999998,132.713379 10.1796875,140.378906 C5.35937519,148.044434 3.51510678,156.889433 4.23353804,157.136134 C7.53268283,158.269021 25.8625082,157.156944 25.8625082,157.156944" stroke="#D8D8D8" stroke-width="1" fill="none"></path>
+  <path id="arms" d="M18.6996508,38.4286322 C18.6996508,81.5887884 5.44140627,78.5039062 24.765625,105.898437" stroke="#D8D8D8" stroke-width="1" fill="none"></path>
+  </g>
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" style="visibility:hidden">
+    <path id="deep_head" d="M75,30 C83.2842712,30 90,23.2842712 90,15 C90,6.71572875 83.2842712,0 75,0 C66.7157288,0 60,6.71572875 60,15 C60,23.2842712 66.7157288,30 75,30 Z" fill="#D8D8D8"></path>
+    <path id="deep_body"  d="M73.8313537,17.9905085 C54.6588665,24.6967053 38.7111652,33.6537601 27.1476915,47.8236536 C15.5842178,61.9935471 21.7253808,63.1668141 42.9659206,63.1668151 C64.2064604,63.1668161 64.7382602,65.0010011 64.7382597,69.4046816 C64.7382593,73.2828209 64.1544053,76.2021883 52.8625082,83.6333231 C45.2582832,88.6376214 35.394884,99.8321848 33.0283676,100.944522 C27.1476916,103.708625 52.8625082,102.156944 52.8625082,102.156944" stroke="#D8D8D8" stroke-width="1" fill="none"></path>
+    <path id="deep_arms"  d="M57.0846066,25 C47.5957569,51.4661331 22.054081,55.2010711 0,49.6945095" stroke="#D8D8D8" stroke-width="1" fill="none"></path>
+  </g>
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" style="visibility:hidden">
+  <path id="standing_head" d="M23,30 C31.2842712,30 38,23.2842712 38,15 C38,6.71572875 31.2842712,0 23,0 C14.7157288,0 8,6.71572875 8,15 C8,23.2842712 14.7157288,30 23,30 Z" fill="#D8D8D8"></path>
+  <path id="standing_body" d="M20.5742178,26.25 C18.8771295,33.861263 20.5742175,41.4296875 10.1796866,63.9765625 C-0.214844284,86.5234375 -2.99371527,86.9023438 6.02836759,102.015625 C15.0504505,117.128906 20.5742173,121.003906 20.5742178,125.308594 C20.5742183,129.613281 14.9999998,132.713379 10.1796875,140.378906 C5.35937519,148.044434 3.51510678,156.889433 4.23353804,157.136134 C7.53268283,158.269021 25.8625082,157.156944 25.8625082,157.156944" stroke="#D8D8D8" stroke-width="1" fill="none"></path>
+  <path id="standing_arms" d="M18.6996508,38.4286322 C18.6996508,81.5887884 5.44140627,78.5039062 24.765625,105.898437" stroke="#D8D8D8" stroke-width="1" fill="none"></path>
+  </g>
+</svg>
+
+<script src="vendor/snap.svg-min.js"></script>
+<!--<script src="vendor/kute.js"></script>-->
 <script src="app.js"></script>
