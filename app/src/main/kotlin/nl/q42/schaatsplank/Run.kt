@@ -1,6 +1,7 @@
 package nl.q42.schaatsplank
 
 import android.content.Context
+import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.util.Log
 import com.github.salomonbrys.kotson.typeToken
@@ -15,10 +16,14 @@ import rx.subjects.PublishSubject
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+data class Event(val timestamp: Long = 0, val values: FloatArray = FloatArray(6)) {
+    constructor(sensorEvent: SensorEvent?) : this(sensorEvent?.timestamp ?: 0, sensorEvent?.values ?: FloatArray(0))
+}
+
 /**
  * @author Herman Banken, Q42
  */
-class Run(val context: Context, val acceleration: Observable<SensorEvent>, val gravity: Observable<SensorEvent>, val scheduler: Scheduler = AndroidSchedulers.mainThread()) {
+class Run(val context: Context, val acceleration: Observable<Event>, val gravity: Observable<Event>, val scheduler: Scheduler = AndroidSchedulers.mainThread()) {
 
     val startRequests = PublishSubject<Match>()
     val stopRequests = PublishSubject<Unit>()

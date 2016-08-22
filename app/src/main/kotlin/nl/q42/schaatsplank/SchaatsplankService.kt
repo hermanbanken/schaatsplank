@@ -16,19 +16,21 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD
 import rx.Observable
 import rx.lang.kotlin.ReplaySubject
 import rx.subjects.BehaviorSubject
-import rx.subjects.PublishSubject
 import rx.subjects.ReplaySubject
 import java.io.IOException
 import java.math.BigInteger
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.net.NetworkInterface
 import java.net.ServerSocket
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Herman Banken, Q42
@@ -40,8 +42,8 @@ class SchaatsplankService: Service(), SensorEventListener {
     private var httpServer: HttpServer? = null
     private var socketServer: SocketServer? = null
 
-    private val acceleration: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
-    private val gravity: BehaviorSubject<SensorEvent> = BehaviorSubject.create()
+    private val acceleration: BehaviorSubject<Event> = BehaviorSubject.create()
+    private val gravity: BehaviorSubject<Event> = BehaviorSubject.create()
     val address: ReplaySubject<String?> = ReplaySubject(1)
     val logs: ReplaySubject<String> = ReplaySubject(10)
     val clients: ReplaySubject<Int> = ReplaySubject(1)
@@ -65,6 +67,23 @@ class SchaatsplankService: Service(), SensorEventListener {
                 }
                 .retry()
                 .publish().autoConnect()
+
+        if (isSimulator()) {
+            runSimulated()
+        }
+    }
+
+    private fun  isSimulator(): Boolean {
+        return Build.FINGERPRINT.startsWith("generic")
+    }
+
+    private fun runSimulated() {
+        Observable.interval(19L, TimeUnit.MILLISECONDS)
+                .map { it to Math.sin(it.toDouble() / 1000 * Math.PI) }
+                .subscribe {
+                    gravity.onNext(Event(it.first, floatArrayOf(0f, 0f, 8f)))
+                    acceleration.onNext(Event(it.first, floatArrayOf(it.second.toFloat(), 0f, 0f)))
+                }
     }
 
     /**
@@ -83,24 +102,28 @@ class SchaatsplankService: Service(), SensorEventListener {
 
         SchaatsplankService.instance = this
         log("Starting service")
-        sensorManager?.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_GAME)
-        sensorManager?.registerListener(this, acclSensor, SensorManager.SENSOR_DELAY_GAME)
+        if(isSimulator()) {
+            setupServers()
+        } else {
+            sensorManager?.registerListener(this, gravSensor, SensorManager.SENSOR_DELAY_GAME)
+            sensorManager?.registerListener(this, acclSensor, SensorManager.SENSOR_DELAY_GAME)
 
-        // Monitor connectivity status
-        this.registerReceiver(object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-                val hasWifi = cm?.allNetworks?.any {
-                    val info = cm.getNetworkInfo(it)
-                    info.isConnectedOrConnecting && info.type == ConnectivityManager.TYPE_WIFI
-                } ?: false
-                log("Network status changed: ${if(hasWifi) "connected" else "disconnected"}")
-                if(hasWifi) { setupServers() } else {
-                    address.onNext(null)
-                    stopServers()
+            // Monitor connectivity status
+            this.registerReceiver(object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    val cm = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                    val hasWifi = cm?.allNetworks?.any {
+                        val info = cm.getNetworkInfo(it)
+                        info.isConnectedOrConnecting && info.type == ConnectivityManager.TYPE_WIFI
+                    } ?: false
+                    log("Network status changed: ${if(hasWifi) "connected" else "disconnected"}")
+                    if(hasWifi) { setupServers() } else {
+                        address.onNext(null)
+                        stopServers()
+                    }
                 }
-            }
-        }, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            }, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+        }
 
         return START_STICKY
     }
@@ -124,9 +147,7 @@ class SchaatsplankService: Service(), SensorEventListener {
     }
 
     fun setupServers() {
-        val wifiMgr = getSystemService(Activity.WIFI_SERVICE) as WifiManager
-        val wifiInfo = wifiMgr.connectionInfo
-        val ip = wifiInfo.ipAddressString()
+        val ip = getIp()
 
         Thread {
             run {
@@ -189,15 +210,33 @@ class SchaatsplankService: Service(), SensorEventListener {
 
     override fun onSensorChanged(event: SensorEvent?) {
         if(event?.sensor == gravSensor) {
-            gravity.onNext(event)
+            gravity.onNext(Event(event))
         }
         if(event?.sensor == acclSensor) {
-            acceleration.onNext(event)
+            acceleration.onNext(Event(event))
         }
     }
 
     companion object: Binder() {
         var instance: nl.q42.schaatsplank.SchaatsplankService? = null
+    }
+
+    fun getIp(): String {
+        if(isSimulator()) {
+            val ifs = NetworkInterface.getNetworkInterfaces()
+            return ifs.toList().flatMap {
+                it.inetAddresses.toList()
+                        .filter { !it.isLoopbackAddress }
+                        .map { it.hostAddress }
+            }
+            .filter { it.indexOf(":") != 5 && it.indexOf(":") != 4 }
+            .first()
+        } else {
+            val wifiMgr = getSystemService(Activity.WIFI_SERVICE) as WifiManager
+            val wifiInfo = wifiMgr.connectionInfo
+            val ip = wifiInfo.ipAddressString()
+            return ip
+        }
     }
 }
 

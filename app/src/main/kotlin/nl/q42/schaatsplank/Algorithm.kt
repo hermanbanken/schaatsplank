@@ -14,7 +14,7 @@ data class Gravity(val factor: Float)
 data class Stability(val factor: Float)
 
 data class State(val speed: Float, val distance: Float, val time: Long, val relTime: Long = 0, val where: Where = Where.MIDWAY) {
-    fun then(acc: SensorEvent): State {
+    fun then(acc: Event): State {
         if(time == 0L) {
             return State(speed, distance, acc.timestamp, 0L)
         } else {
