@@ -33,7 +33,7 @@ class AlgorithmTest {
             val mod = i % (slag / 19)
             val where = if(mod == 0L) Where.LEFT else if(mod == (slag / 2 / 19)) Where.RIGHT else Where.MIDWAY
             State(0f, 0f, start + i * 19e6.toLong(), i * 19e6.toLong(), where)
-        }.map { it to Gravity(0.99f) }
+        }.map { it to Gravity(0.99f, 0f) }
 
         return checkObservable(scheduler, mock, 1)
     }
@@ -55,7 +55,7 @@ class AlgorithmTest {
                 if(inc++ % 2 == 0) Where.LEFT else Where.RIGHT
             } else Where.MIDWAY
             State(0f, 0f, start + i * 19e6.toLong(), i * 19e6.toLong(), where)
-        }.map { it to Gravity(0.6f) }
+        }.map { it to Gravity(0.6f, 0f) }
 
         return checkObservable(scheduler, mock, offset)
     }
@@ -77,7 +77,7 @@ class AlgorithmTest {
                 if(inc++ % 2 == 0) Where.LEFT else Where.RIGHT
             } else Where.MIDWAY
             State(0f, 0f, start + i * 19e6.toLong(), i * 19e6.toLong(), where)
-        }.map { it to Gravity(0.8f) }
+        }.map { it to Gravity(0.8f, 0f) }
 
         return checkObservable(scheduler, mock, offset)
     }

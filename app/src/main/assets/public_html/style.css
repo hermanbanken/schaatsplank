@@ -49,6 +49,11 @@ video {
     font-size: 4vw;
     z-index: 1000;
 }
+.bottomright {
+    position: absolute;
+    right: 3vw;
+    bottom: 3vw;
+}
 
 .circle {
     width: 6vw;

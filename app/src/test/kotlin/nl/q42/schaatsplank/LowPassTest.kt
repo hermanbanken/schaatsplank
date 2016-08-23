@@ -1,13 +1,10 @@
 package nl.q42.schaatsplank
 
-import nl.q42.schaatsplank.lowpass
-import nl.q42.schaatsplank.string
+import nl.q42.schaatsplank.LowPassOperator.Companion.lowpass
 import org.junit.Assert
 import org.junit.Test
 import rx.Observable
-import rx.observers.TestObserver
 import rx.observers.TestSubscriber
-import rx.schedulers.TestScheduler
 
 /**
  * @author Herman Banken, Q42

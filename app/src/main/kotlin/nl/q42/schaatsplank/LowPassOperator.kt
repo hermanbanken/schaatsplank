@@ -56,42 +56,43 @@ class LowPassOperator(val factor: Float): Observable.Operator<FloatArray, FloatA
         return LowPassSubscriber(factor, next)
     }
 
-}
+    companion object {
 
-
-fun Observable<FloatArray>.lowpass(factor: Float): Observable<FloatArray> {
-    return this.scan(0f to FloatArray(0), { memo, t ->
-        if(t == null) return@scan memo
-        val (stable, stabilized) = memo
-        if(stabilized.size == t.size) {
-            val copy = stabilized.copyOf()
-            for (i in 0..(stabilized.size-1)) {
-                copy[i] = stabilized[i] * (1f - factor) + t[i] * factor
-            }
-            if(stable < 1) {
-                return@scan (stable + factor to copy)
-            } else {
-                return@scan (stable to copy)
-            }
-        } else {
-            return@scan (stable + factor to t)
+        fun Observable<FloatArray>.lowpass(factor: Float): Observable<FloatArray> {
+            return this.scan(0f to FloatArray(0), { memo, t ->
+                if(t == null) return@scan memo
+                val (stable, stabilized) = memo
+                if(stabilized.size == t.size) {
+                    val copy = stabilized.copyOf()
+                    for (i in 0..(stabilized.size-1)) {
+                        copy[i] = stabilized[i] * (1f - factor) + t[i] * factor
+                    }
+                    if(stable < 1) {
+                        return@scan (stable + factor to copy)
+                    } else {
+                        return@scan (stable to copy)
+                    }
+                } else {
+                    return@scan (stable + factor to t)
+                }
+            })
+                    .filter { it.first >= 1 }
+                    .map { it.second }
+                    .filter { it.size > 0 }
         }
-    })
-    .filter { it.first >= 1 }
-    .map { it.second }
-    .filter { it.size > 0 }
-}
 
-fun Observable<Float>.lowpassSingle(factor: Float): Observable<Float> {
-    return this.scan(0f to 0f, { memo, t ->
-        val (stable, stabilized) = memo
-        val next = stabilized * (1f - factor) + t * factor
-        if(stable < 1) {
-            return@scan (stable + factor to next)
-        } else {
-            return@scan (stable to next)
+        fun Observable<Float>.lowpassSingle(factor: Float): Observable<Float> {
+            return this.scan(0f to 0f, { memo, t ->
+                val (stable, stabilized) = memo
+                val next = stabilized * (1f - factor) + t * factor
+                if (stable < 1) {
+                    return@scan (stable + factor to next)
+                } else {
+                    return@scan (stable to next)
+                }
+            })
+                    .filter { it.first >= 1 }
+                    .map { it.second }
         }
-    })
-    .filter { it.first >= 1 }
-    .map { it.second }
+    }
 }

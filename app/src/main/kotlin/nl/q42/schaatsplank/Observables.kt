@@ -7,12 +7,12 @@ import rx.Observable
  * @author Herman Banken, Q42
  */
 
-fun <T,R> Observable<T>.sliding(op: (T, T) -> R): Observable<R> {
+fun <T, R> Observable<T>.sliding(op: (T, T) -> R): Observable<R> {
     return Observable.create<R> { sub ->
         var last: T? = null
         this.subscribe({ next ->
             val l = last
-            if(l != null) {
+            if (l != null) {
                 sub.onNext(op(l, next))
             }
             last = next
@@ -22,23 +22,27 @@ fun <T,R> Observable<T>.sliding(op: (T, T) -> R): Observable<R> {
 
 fun <T> Observable<T>.debug(key: String? = null, op: ((Any?) -> String)? = null): Observable<T> {
     return this.doOnEach { n ->
-        if(!BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
             return@doOnEach
         }
         val message =
-            if(op != null && n.hasValue()) {
-                try {
-                    if (key == null) "$n" else "$key: ${op(n.value)}"
-                } catch(_: Exception) {
-                    "$key: exception while determining value"
+                if (op != null && n.hasValue()) {
+                    try {
+                        if (key == null) "$n" else "$key: ${op(n.value)}"
+                    } catch(_: Exception) {
+                        "$key: exception while determining value"
+                    }
+                } else {
+                    if (key == null) "$n" else "$key: $n"
                 }
-            } else {
-                if (key == null) "$n" else "$key: $n"
-            }
         try {
             Log.i(javaClass.simpleName, message)
         } catch(_: Exception) {
             print(message)
         }
     }
+}
+
+fun Observable<Pair<State, Gravity>>.match(match: Match): Observable<ExternalState> {
+    return Algorithm.match(match, this)
 }

@@ -73,7 +73,7 @@ class SchaatsplankService: Service(), SensorEventListener {
         }
     }
 
-    private fun  isSimulator(): Boolean {
+    private fun isSimulator(): Boolean {
         return Build.FINGERPRINT.startsWith("generic")
     }
 
@@ -129,7 +129,7 @@ class SchaatsplankService: Service(), SensorEventListener {
     }
 
     fun foreground(address: String) {
-        val id = 4242;
+        val id = 4242
         //The intent to launch when the user clicks the expanded notification
         val intent = Intent(this, Schaatsplank::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -217,10 +217,6 @@ class SchaatsplankService: Service(), SensorEventListener {
         }
     }
 
-    companion object: Binder() {
-        var instance: nl.q42.schaatsplank.SchaatsplankService? = null
-    }
-
     fun getIp(): String {
         if(isSimulator()) {
             val ifs = NetworkInterface.getNetworkInterfaces()
@@ -238,51 +234,56 @@ class SchaatsplankService: Service(), SensorEventListener {
             return ip
         }
     }
-}
 
-/**
- * Get formatted IPv4 address
- * @see {@link http://stackoverflow.com/a/26915348/552203}
- */
-fun WifiInfo.ipAddressString(): String {
-    val bytes = BigInteger.valueOf(this.ipAddress.toLong()).toByteArray()
-    bytes.reverse()
-    // you must reverse the byte array before conversion
-    val ip = InetAddress.getByAddress(bytes)
-    return ip.hostAddress
-}
 
-/**
- * Checks to see if a specific port is available.
- *
- * @param port the port to check for availability
- */
-fun available(port: Int, hostname: String? = null): Boolean {
+    companion object: Binder() {
+        var instance: nl.q42.schaatsplank.SchaatsplankService? = null
 
-    if (port < 8000 || port > 64000) {
-        throw IllegalArgumentException("Invalid start port: $port");
-    }
-
-    var ss: ServerSocket? = null
-    var ds: DatagramSocket? = null
-    try {
-        if(hostname == null) {
-            ss = ServerSocket(port)
-        } else {
-            ss = ServerSocket(port, 0, InetAddress.getByName(hostname))
+        /**
+         * Get formatted IPv4 address
+         * @see {@link http://stackoverflow.com/a/26915348/552203}
+         */
+        fun WifiInfo.ipAddressString(): String {
+            val bytes = BigInteger.valueOf(this.ipAddress.toLong()).toByteArray()
+            bytes.reverse()
+            // you must reverse the byte array before conversion
+            val ip = InetAddress.getByAddress(bytes)
+            return ip.hostAddress
         }
-        ss.reuseAddress = true;
-        ds = DatagramSocket(port);
-        ds.reuseAddress = true;
-        return true;
-    } catch (e: IOException) {
-    } finally {
-        ds?.close()
-        try {
-            ss?.close();
-        } catch (e: IOException) {
-            /* should not be thrown */
+
+        /**
+         * Checks to see if a specific port is available.
+         *
+         * @param port the port to check for availability
+         */
+        fun available(port: Int, hostname: String? = null): Boolean {
+
+            if (port < 8000 || port > 64000) {
+                throw IllegalArgumentException("Invalid start port: $port")
+            }
+
+            var ss: ServerSocket? = null
+            var ds: DatagramSocket? = null
+            try {
+                if(hostname == null) {
+                    ss = ServerSocket(port)
+                } else {
+                    ss = ServerSocket(port, 0, InetAddress.getByName(hostname))
+                }
+                ss.reuseAddress = true
+                ds = DatagramSocket(port)
+                ds.reuseAddress = true
+                return true
+            } catch (e: IOException) {
+            } finally {
+                ds?.close()
+                try {
+                    ss?.close()
+                } catch (e: IOException) {
+                    /* should not be thrown */
+                }
+            }
+            return false
         }
     }
-    return false;
 }

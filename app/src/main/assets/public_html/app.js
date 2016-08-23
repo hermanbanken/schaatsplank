@@ -69,6 +69,7 @@ new Vue({
     name: "",
     config: false,
     socket: null,
+    person: new Person("#person"),
     mode: 0,
     distances: [
       { value: 5, name: 'test', shown: true },
@@ -98,6 +99,9 @@ new Vue({
       }
       if(data.distance) {
         this.match.distance = data.distance;
+      }
+      if(data.angle) {
+        this.person.show(data.factor, data.angle);
       }
       if(data.speed) {
         this.match.speed = data.speed
@@ -281,34 +285,6 @@ new Vue({
   },
   created: function (){
     this.reconnect()
+    window.person = this.person
   }
 });
-
-function Person(svg_selector) {
-  this.svg = Snap(svg_selector);
-  this.parts = ["body", "arms", "head"]
-  this.types = ["deep", "standing"];
-  this.type = 0;
-  this.offsets = [{ transform: "translate(-25,55)" }, { transform: "translate(0,0)" }]
-
-  setInterval(this.move.bind(this), 1000)
-  this.move();
-
-  this.svg.select("#body").attr({
-    strokeWidth: 12,
-  })
-  this.svg.select("#arms").attr({
-    strokeWidth: 12,
-  })
-}
-
-Person.prototype.move = function(){
-  ["body", "arms", "head"].forEach(function(part){
-    var template = this.svg.select("#"+this.types[this.type]+"_"+part);
-    this.svg.select("#"+part).animate({d: template.attr('d') }, 1000);
-    this.svg.select("#"+part).animate(this.offsets[this.type] , 1000);
-  }.bind(this))
-  this.type = (this.type + 1) % 2;
-}
-
-new Person("#person")
