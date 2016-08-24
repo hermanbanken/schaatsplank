@@ -84,9 +84,8 @@ new Vue({
       data.extra && data.extra.gravityfactor && (this.match.gravityfactor = data.extra.gravityfactor);
       data.extra && data.extra.acc && (this.match.acc = data.extra.acc);
 
-      if(data.speed && window.navigator.platform.indexOf("Win") == 0) {
-        console.log(data.speed);
-        film.playbackRate(data.speed / 2);
+      if(data.speed) {
+        film.playbackRate(data.speed / 8);
       }
 
       if(data.event == 'start') {

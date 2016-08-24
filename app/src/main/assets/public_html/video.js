@@ -66,12 +66,9 @@ function Video(selector){
     return p;
   }
 
-  if(window.navigator.platform.indexOf("Win") == 0) {
-    vid.currentTime = 0
-  }
-
   this.play = play;
   this.playbackRate = function(val){
+    console.log(val); // && window.navigator.platform.indexOf("Win") == 0
     vid.playbackRate = val
   }
   function jump(val, maybePlay){
