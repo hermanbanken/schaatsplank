@@ -36,25 +36,7 @@ Vue.component('btn', Vue.extend({
   template: "<div class='fill btn' v-on:click=\"$dispatch('click')\"><div class='diagl'></div><div class='th darker'><slot></slot></div><div class='diagr'></div></div>"
 }))
 
-var film = document.getElementById("film");
-var loopStart = 10 // 24 + 25/60;
-var loopEnd = 12 // 42 + 21/60;
-var loopDuration = loopEnd - loopStart;
-function playing(){
-  setTimeout(function(){
-    console.log(film.currentTime, loopEnd, loopStart);
-    if(film.currentTime > loopEnd - 5) {
-      film.currentTime -= loopDuration;
-      playing();
-    }
-  }, (loopEnd - film.currentTime - 5) * 1000);
-}
-function stopped(){
-  if(film.currentTime > loopEnd) {
-    film.currentTime -= loopDuration;
-    film.play();
-  }
-}
+var film = new Video("#film");
 
 new Vue({
   el: 'body',
@@ -71,6 +53,7 @@ new Vue({
     socket: null,
     person: new Person("#person"),
     mode: 0,
+    starting: false,
     distances: [
       { value: 5, name: 'test', shown: true },
       { value: 500, name: 'infomarkt', shown: true },
@@ -94,37 +77,27 @@ new Vue({
         this.socket.send(JSON.stringify(data));
     },
     receive: function (data) {
-      if(data.time) {
-        this.match.time = data.time;
+      data.time && (this.match.time = data.time);
+      data.distance && (this.match.distance = data.distance);
+      data.speed && (this.match.speed = data.speed);
+      data.angle && this.person.show(data.factor, data.angle);
+      data.extra && data.extra.gravityfactor && (this.match.gravityfactor = data.extra.gravityfactor);
+      data.extra && data.extra.acc && (this.match.acc = data.extra.acc);
+
+      if(data.speed && window.navigator.platform.indexOf("Win") == 0) {
+        console.log(data.speed);
+        film.playbackRate(data.speed / 2);
       }
-      if(data.distance) {
-        this.match.distance = data.distance;
-      }
-      if(data.angle) {
-        this.person.show(data.factor, data.angle);
-      }
-      if(data.speed) {
-        this.match.speed = data.speed
-      }
-      if(data.extra && data.extra.gravityfactor) {
-        this.match.gravityfactor = data.extra.gravityfactor
-      }
-      if(data.extra && data.extra.acc) {
-        this.match.acc = data.extra.acc
-      }
+
       if(data.event == 'start') {
         this.mode = 1;
         this.name = "";
         this.match = { time: 0, total_distance: data.distance, distance: 0, done: false, gravityfactor: 0, speed: 0, acc: 0 };
-        var p = film.play();
-        if (p && (typeof Promise !== 'undefined') && (p instanceof Promise)) {
-            p.catch(function (e) {
-                console.log("Caught pending play exception - continuing ("+e+"})");
-            })
-        }
+        this.starting = false;
+        film.jump(0)
       }
       if(data.event == 'done') {
-        film.currentTime = 0;
+        film.jump(0);
         film.pause();
         this.match.done = true;
         this.mode = -1;
@@ -187,6 +160,8 @@ new Vue({
       this.send(packet)
       this.match.total_distance = distance;
       this.mode = 1;
+      this.starting = true;
+      film.jump(0, false);
     },
     home: function(){
       if(this.mode == 1 && confirm("Sure?")) {

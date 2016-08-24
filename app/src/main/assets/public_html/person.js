@@ -13,8 +13,6 @@ function Person(svg_selector) {
     );
   }.bind(this));
 
-//  setInterval(this.move.bind(this), 1000)
-//  this.move();
   this.svg.select("#final").attr({"fill": '#4360AD', "stroke": '#4360AD'});
 }
 

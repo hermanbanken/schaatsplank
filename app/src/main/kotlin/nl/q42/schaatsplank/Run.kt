@@ -34,7 +34,7 @@ final class Run(val context: Context, acceleration: Observable<Event>, gravity: 
             .scan(State(0f, 0f, 0L), { speed, acc -> speed.then(acc) })
             .publish { Observable.merge(
                 it.filter { it.where != Where.MIDWAY }.throttleFirst(500, TimeUnit.MILLISECONDS, scheduler),
-                it.filter { it.where == Where.MIDWAY }.throttleFirst(100, TimeUnit.MILLISECONDS, scheduler)
+                it.filter { it.where == Where.MIDWAY }.throttleFirst(50, TimeUnit.MILLISECONDS, scheduler)
             ) }
             .onBackpressureBuffer(100, { Log.i(javaClass.simpleName, "Publish buffer overflow") })
 
@@ -54,6 +54,7 @@ final class Run(val context: Context, acceleration: Observable<Event>, gravity: 
                 .concatWith(stateEvents
                     .onBackpressureDrop()
                     .match(match)
+                    .throttleLast(200, TimeUnit.MILLISECONDS)
                     .publish {
                         it.last().map { state ->
                             val final = match.copy(result = state.time)

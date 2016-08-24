@@ -7,10 +7,13 @@
 
 <div v-cloak>
 
-<video id="film" preload="auto" :style="{ opacity: mode == 1 ? 1 : 0.2 }" loop autoplay>
-    <source id='crop' src="github/releases/download/v4/crop.m4v" type="video/mp4" />
+<div class='overlay' :style="{ background: mode == 1 && starting ? 'black' : 'transparent' }">
+<video id="film" preload="auto" :style="{ opacity: mode == 1 ? (starting ? 0 : 1) : 0.2 }" loop autoplay muted>
+    <!--<source id='crop' src="github/releases/download/v4/crop.m4v" type="video/mp4" />-->
     <source id='original' src="github/releases/download/v4/film.mp4" type="video/mp4" data-loopStart="24.41666" data-loopEnd="42.35" />
+    <!--<source id='original' src="github/releases/download/v4/film.mp4" type="video/mp4" data-loopStart="5" data-loopEnd="8" />-->
 </video>
+</div>
 
 <div class="topleft" v-show="mode == 0">
     <template v-for="distance in distances">
@@ -23,7 +26,7 @@
     <nos>S {{match.speed && match.speed.toFixed(0)}} m/s</nos>
     <nos>A {{match.acc && match.acc.toFixed(2)}} m/s<sup>2</sup></nos>
 
-    <svg viewBox="0 0 40 164" xmlns="http://www.w3.org/2000/svg" style="width: 125px; height: 200px;" id="person">
+    <svg viewBox="0 0 40 164" xmlns="http://www.w3.org/2000/svg" style="width: 15vw; height: 15vw;" id="person" :style="{ opacity: mode == 1 && !starting ? 1 : 0 }">
         <text id="angle" x="0" y="30" style="font-size: 50%">45°</text>
         <!--class="bottomright"-->
         <g fill="#D8D8D8" fill-rule="evenodd" stroke="#D8D8D8" stroke-width="12" id="final">
@@ -188,4 +191,5 @@
 </div>
 <script src="vendor/snap.svg-min.js"></script>
 <script src="person.js"></script>
+<script src="video.js"></script>
 <script src="app.js"></script>

@@ -27,7 +27,7 @@ object Algorithm {
                 else return@map Frequency(1f / dur.first, dur.second.relTime * 1e-9f)
             }
             .filter { it.f != 0f }
-            .debug("freq", { f -> (f as Frequency).f.format(3) + "Hz" })
+//            .debug("freq", { f -> (f as Frequency).f.format(3) + "Hz" })
 
         // calculate frequency stability
         val freqStability = frequency.sliding { a, b ->
@@ -39,7 +39,7 @@ object Algorithm {
             }
         }
         .map { Stability(it) }
-        .debug { s -> (s as Stability).factor.format(3) }
+//        .debug { s -> (s as Stability).factor.format(3) }
 
         val freqStab = freqStability.startWith(Stability(0f)).withLatestFrom(frequency.startWith(Frequency(0f)), { a, b -> a to b })
 
@@ -67,12 +67,6 @@ object Algorithm {
                 s.extra.addProperty("gravityfactor", shape.factor)
                 s.extra.addProperty("tilt", shape.tiltAngle)
                 s.extra.addProperty("acc", acc)
-//                s.extra.addProperty("goodness", goodness)
-//                s.extra.addProperty("acc", acc)
-//                s.extra.addProperty("goodness_a", a)
-//                s.extra.addProperty("goodness_b", b)
-//                s.extra.addProperty("range_min", range.min)
-//                s.extra.addProperty("range_max", range.max)
                 s
             }
             .publish { it

@@ -23,6 +23,9 @@ import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.subscriptions.CompositeSubscription
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 /**
@@ -38,6 +41,7 @@ class Schaatsplank: Activity() {
 
     override fun onStart() {
         super.onStart()
+
         connection = object: ServiceConnection {
             override fun onServiceDisconnected(className: ComponentName?) {
                 disposable?.unsubscribe()

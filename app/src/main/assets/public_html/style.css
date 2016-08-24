@@ -8,8 +8,20 @@ body {
   box-sizing: border-box;
 }
 
+[v-cloak] {
+  display: none;
+}
+
 video {
   width: 100%;
+}
+svg, video {
+  transition: opacity 0.5s;
+}
+
+.overlay {
+  background: black;
+  transition: background 0.5s;
 }
 
 .box {

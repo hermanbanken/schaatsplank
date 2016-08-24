@@ -31,7 +31,7 @@ import java.security.NoSuchAlgorithmException
  */
 class Cache(val context: Context) {
 
-    fun get(url: String): Observable<InputStream> {
+    fun get(url: String): Pair<File, Observable<InputStream>> {
         val subject = BehaviorSubject<InputStream>()
         val path = context.externalMediaDirs[0]
         val file = "schaatsplank-" + SimpleSHA1.SHA1(url).substring(0, 8) + "." + url.split('/').last()
@@ -39,7 +39,7 @@ class Cache(val context: Context) {
         // Try cache
         val location = File(path, file)
         if(location.exists()) {
-            return Observable.just(location.inputStream())
+            return location to Observable.just(location.inputStream() as InputStream)
         }
 
         context.runOnUiThread {
@@ -106,11 +106,12 @@ class Cache(val context: Context) {
                     .map { File(it).inputStream() }
                     .subscribe(subject)
         }
-        return subject
+        return location to subject
     }
 
-    fun stream(url: String): InputStream? {
-        return get(url).observeOn(Schedulers.newThread()).toBlocking().first()
+    fun stream(url: String): Pair<File,InputStream?> {
+        val (file, obs) = get(url)
+        return file to obs.observeOn(Schedulers.newThread()).toBlocking().first()
     }
 }
 
