@@ -4,7 +4,9 @@ import android.content.Context
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD
 import fi.iki.elonen.NanoHTTPD.Response.Status
+import rx.Observable
 import timber.log.Timber
+import java.io.*
 import java.net.SocketException
 
 class HttpServer(hostname: String, val port: Int, val context: Context): NanoHTTPD(hostname, port) {
@@ -29,6 +31,16 @@ class HttpServer(hostname: String, val port: Int, val context: Context): NanoHTT
         val uri = when (session.uri) {
             "/" -> "index.html"
             else -> { session.uri.trim('/') }
+        }
+
+        // releases/download/v4/crop.m4v &
+        // releases/download/v4/film.mp4
+        if(uri.indexOf("github/") == 0) {
+            val os = ByteArrayOutputStream()
+            val url = "https://github.com/hermanbanken/schaatsplank/${uri.removePrefix("github/")}"
+            Log.i(javaClass.simpleName, "Downloading from Github: $url")
+            val ins = Cache(context).stream(url)
+            return newChunkedResponse(Status.OK, getMimeTypeForFile(uri), ins)
         }
 
         for (dir in arrayOf("", "vendor")) {

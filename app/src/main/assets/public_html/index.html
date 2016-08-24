@@ -5,8 +5,11 @@
     <meta content="text/html" charset="utf-8" />
 </head>
 
-<video id="film" preload v-show="mode > 0" transition="fade" loop>
-    <source id='mp4' src="crop.m4v" type="video/mp4" />
+<div v-cloak>
+
+<video id="film" preload="auto" :style="{ opacity: mode == 1 ? 1 : 0.2 }" loop autoplay>
+    <source id='crop' src="github/releases/download/v4/crop.m4v" type="video/mp4" />
+    <source id='original' src="github/releases/download/v4/film.mp4" type="video/mp4" data-loopStart="24.41666" data-loopEnd="42.35" />
 </video>
 
 <div class="topleft" v-show="mode == 0">
@@ -182,6 +185,7 @@
     </table>
 </div>
 
+</div>
 <script src="vendor/snap.svg-min.js"></script>
 <script src="person.js"></script>
 <script src="app.js"></script>
