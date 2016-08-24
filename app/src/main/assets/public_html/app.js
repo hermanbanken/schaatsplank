@@ -84,7 +84,7 @@ new Vue({
       data.extra && data.extra.gravityfactor && (this.match.gravityfactor = data.extra.gravityfactor);
       data.extra && data.extra.acc && (this.match.acc = data.extra.acc);
 
-      if(data.speed) {
+      if(data.speed && this.mode == 1) {
         film.playbackRate(data.speed / 8);
       }
 
@@ -93,6 +93,7 @@ new Vue({
         this.name = "";
         this.match = { time: 0, total_distance: data.distance, distance: 0, done: false, gravityfactor: 0, speed: 0, acc: 0 };
         this.starting = false;
+        film.playbackRate(1);
         film.jump(0)
       }
       if(data.event == 'done') {
@@ -100,6 +101,7 @@ new Vue({
         film.pause();
         this.match.done = true;
         this.mode = -1;
+        film.playbackRate(1);
       }
       if(data.event == 'message') {
         return this.showMessage(data.message);
