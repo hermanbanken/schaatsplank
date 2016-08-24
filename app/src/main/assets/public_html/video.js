@@ -43,7 +43,7 @@ function Video(selector){
   }
 
   function timeupdate(e) {
-    console.log("timeupdate", e.timeStamp, vid.currentTime);
+//    console.log("timeupdate", e.timeStamp, vid.currentTime);
     if(vid.currentTime > range[1]) {
       console.log("Immediate seek");
       jump(range[0])
@@ -68,7 +68,7 @@ function Video(selector){
 
   this.play = play;
   this.playbackRate = function(val){
-    console.log(val); // && window.navigator.platform.indexOf("Win") == 0
+//    console.log(val); // && window.navigator.platform.indexOf("Win") == 0
     vid.playbackRate = val
   }
   function jump(val, maybePlay){
