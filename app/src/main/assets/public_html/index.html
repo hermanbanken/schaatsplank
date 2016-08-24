@@ -7,7 +7,7 @@
 
 <div v-cloak>
 
-<div class='overlay' :style="{ background: mode == 1 && starting ? 'black' : 'transparent' }">
+<div class='overlay video-wrap' :style="{ background: mode == 1 && starting ? 'black' : 'transparent' }">
 <video id="film" preload="auto" :style="{ opacity: mode == 1 ? (starting ? 0 : 1) : 0.2 }" loop autoplay muted>
     <!--<source id='crop' src="github/releases/download/v4/crop.m4v" type="video/mp4" />-->
     <source id='original' src="github/releases/download/v4/film.mp4" type="video/mp4" data-loopStart="24.41666" data-loopEnd="42.35" />

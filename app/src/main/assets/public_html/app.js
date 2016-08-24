@@ -55,19 +55,11 @@ new Vue({
     mode: 0,
     starting: false,
     distances: [
-      { value: 5, name: 'test', shown: true },
-      { value: 500, name: 'infomarkt', shown: true },
-      { value: 1000, name: 'sportmarkt', shown: false },
+      { value: 500, name: '500m', shown: true },
+      { value: 1000, name: '1000m', shown: false },
     ],
-    skaters: [
-      { name: "Herman Banken" },
-      { name: "Vincent van der Wal" },
-      { name: "Dummy" },
-    ],
-    results: [
-      { name: "Herman Banken", distance: 500, time: 41.99 },
-      { name: "Vincent van der Wal", distance: 1000, time: 84.99 },
-    ],
+    skaters: [],
+    results: [],
     message: null,
     hasMessage: false,
     offline: false,
