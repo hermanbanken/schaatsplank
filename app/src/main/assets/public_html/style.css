@@ -12,8 +12,10 @@ body {
   display: none;
 }
 
-video {
-  width: 100%;
+video, .video-wrap {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0; top: 0;
 }
 svg, video {
   transition: opacity 0.5s;
