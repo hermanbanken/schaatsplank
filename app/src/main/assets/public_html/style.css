@@ -110,8 +110,11 @@ div#form, #message {
 }*/
 
 .centerbox {
-  width: 60vw;
-  margin: 3vw auto;
+    width: 60vw;
+    margin: 0 -30vw;
+    position: absolute;
+    left: 50%;
+    top: 3vw;
 }
 
 #small-rankings {
@@ -197,6 +200,10 @@ table, .centerbox, div {
   line-height: 0;
   padding: 0;
   height: 0;
+}
+
+h1.fill {
+    margin: 0;
 }
 
 h1.fill .th {
