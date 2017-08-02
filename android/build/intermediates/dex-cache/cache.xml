@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/design/23.3.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="f0001e71cea6ae432a00021c6f727f5ef0f3d27e">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-design-23.3.0_43ad867b7cffc5f1c5a3e503b7eb6e84de457b26/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/support-v4/24.1.1/jars/libs/internal_impl-24.1.1.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="f78c2f395cb096f9dc1dc07e729922b8fcd3c4f5">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/internal_impl-24.1.1_b30926e962f5ee05c754d9b3f5b56e325e6e9f1c/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.jetbrains.anko/anko-common/0.9/26c6156bea5eb494474c90528240daadf4b067c8/anko-common-0.9.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="26c6156bea5eb494474c90528240daadf4b067c8">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/anko-common-0.9_ed9b3170aa3c275902a40f5b6b0ef5b303020d97/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/io.reactivex/rxandroid/1.2.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="5a2386ad9bfff580b206a7fe305cdccd00798159">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/io.reactivex-rxandroid-1.2.1_d721d6cd5f6c5b987dd5da3c88b885c9dcea8b21/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/24.1.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="1256c10604bb098490eab070d76754ac5ceab35c">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-appcompat-v7-24.1.1_6ec8d27eb248db430aea7baddd956004674a5d64/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/io.reactivex/rxjava/1.1.6/2586312cd2b8a511e4c6236736f5a039fc0f2273/rxjava-1.1.6.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="2586312cd2b8a511e4c6236736f5a039fc0f2273">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/rxjava-1.1.6_8b68580e1f59de69a746f0438720c76f531eb720/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.7/751f548c85fa49f330cecbb1875893f971b33c4e/gson-2.7.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="751f548c85fa49f330cecbb1875893f971b33c4e">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/gson-2.7_29e06f6f0da76dd33cf3f8aa34541867e93399c9/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/recyclerview-v7/24.1.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="787871951412550519b0222aba3c9df4cea49875">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-recyclerview-v7-24.1.1_e430826553240402a5061635f0650687089ea511/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.jetbrains.anko/anko-appcompat-v7/0.9/69676bf4015be3e182e00dbebea5ee0c9325e78a/anko-appcompat-v7-0.9.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="69676bf4015be3e182e00dbebea5ee0c9325e78a">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/anko-appcompat-v7-0.9_1dd11965ae8b56d9a3da3e818bfda4af7fe2050b/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="71ac6ef0049443a0ebee1218f1947b54e3d4b41a">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_c78ad2bc2f13e7738d807c7b13f229b13a971cc0/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-runtime/1.0.3/10f40d016700cf4287e49fa1d51c2a8507e9b946/kotlin-runtime-1.0.3.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="10f40d016700cf4287e49fa1d51c2a8507e9b946">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/kotlin-runtime-1.0.3_03ad895f53d69d0c842796520241f125affc928b/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/io.reactivex/rxkotlin/0.60.0/6729c889262e7c2cb6bba30cb9aa93d78167f69b/rxkotlin-0.60.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="6729c889262e7c2cb6bba30cb9aa93d78167f69b">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/rxkotlin-0.60.0_22a875a7275ea85e9a4db1215e9a5060828b21f7/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="774ab61075169d1efd350103062ba7385bbc9cc3">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_5627934358a3974fa05e6c44dc0530fa58c72489/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.roughike/bottom-bar/1.4.0.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="c4e65d46b09bd2156ad6fdf147d08b17c0fef75c">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.roughike-bottom-bar-1.4.0.1_47946951c9de2f5d0f080a5ec6bb2310c9897b0f/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/cardview-v7/24.1.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="4add8aa95c9f4e9a2ad64b7e2bf08e97e28955c1">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-cardview-v7-24.1.1_1d41dcb9f8f5eb32288b90cd6a90f9580c7d122c/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.nanohttpd/nanohttpd/2.2.0/73a02117620b6cc7683a1ed6ae24c2f36e2a715/nanohttpd-2.2.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="073a02117620b6cc7683a1ed6ae24c2f36e2a715">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/nanohttpd-2.2.0_0aa351c674f0511b5132090dcc49bfe6c04cf62d/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/support-vector-drawable/24.1.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="f62e763609f65e47dc6c498760a4accf02776788">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-vector-drawable-24.1.1_108210d4d19b2f6e99153cc6732df46235a7e053/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.jetbrains.anko/anko-support-v4/0.9/4616ffe811fc931672c50fb05834a62aa24cdab2/anko-support-v4-0.9.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="4616ffe811fc931672c50fb05834a62aa24cdab2">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/anko-support-v4-0.9_fcadad702051d5162fc47a91ca214fb70dd678f2/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.jakewharton.timber/timber/4.1.2/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="aba9abcfe7ce6d935add115f5ce20254b037d583">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.jakewharton.timber-timber-4.1.2_6cc97fdffa9f4c6a5b86aec4a6462c1d2cc78ef8/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.0.3/20738122b53399036c321eeb84687367757d622a/kotlin-stdlib-1.0.3.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="20738122b53399036c321eeb84687367757d622a">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/kotlin-stdlib-1.0.3_13c8d912ba524e4e72002588c7cf94e6093a946a/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.java-websocket/Java-WebSocket/1.3.0/db2658f013fb163de4a99274c2eb9e17efe535d2/Java-WebSocket-1.3.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="db2658f013fb163de4a99274c2eb9e17efe535d2">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/Java-WebSocket-1.3.0_075b545bc43d44702d6074a764c18e37c9a5b21b/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/com.android.support/support-annotations/24.1.1/3af19f153122737b372622fa6c81dd11a1c6b999/support-annotations-24.1.1.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="3af19f153122737b372622fa6c81dd11a1c6b999">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/support-annotations-24.1.1_da9de33fc102776b00dbaafd7c4a41251ff6f110/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/support-v4/24.1.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="6d7d803871e3203465f71a163e7af104f807b446">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-support-v4-24.1.1_946f04379178117318ae796732220d1cb7fe1caa/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/uk.co.chrisjenx/calligraphy/2.2.0/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="ebcb0bcf52fab7c586f39717f7cb8de91748b1b1">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/uk.co.chrisjenx-calligraphy-2.2.0_0e2cc391bd3836ebe66d9021587bdf4dcc934c65/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/com.github.salomonbrys.kotson/kotson/2.3.0/fe74cebad33b13d01b9e301907abf4aab8c1af38/kotson-2.3.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="fe74cebad33b13d01b9e301907abf4aab8c1af38">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/kotson-2.3.0_35d63af57a78717f7d21f1a55bc6a093d155b7b2/classes.dex" />
+    </item>
+    <item
+        jar="/Users/hbanken/.gradle/caches/modules-2/files-2.1/org.jetbrains.anko/anko-sdk19/0.9/7529d069922d18bad1a08c8ac49c45ef6206665a/anko-sdk19-0.9.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="7529d069922d18bad1a08c8ac49c45ef6206665a">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/anko-sdk19-0.9_c41386825b9f3de7f4a1a915b1d297ead037525e/classes.dex" />
+    </item>
+    <item
+        jar="/Projects/schaatsplank/app/build/intermediates/exploded-aar/com.android.support/animated-vector-drawable/24.1.1/jars/classes.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="c936c1bd42f0c018c18920c7bec619ef056b24f8">
+        <dex dex="/Projects/schaatsplank/app/build/intermediates/transforms/dex/debug/folders/1000/10/com.android.support-animated-vector-drawable-24.1.1_e5a54f7da465f61e0f0d21b80df0ce0db3366aaa/classes.dex" />
+    </item>
+
+</items>
