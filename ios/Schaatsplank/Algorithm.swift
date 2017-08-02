@@ -86,7 +86,7 @@ func scan(prev: ExternalState, next: (state: State, measures: (shape: Gravity, s
     goodness = 0.0
   } else if freq.time == nil {
     goodness = min(1.0, max(0.0, a + b + 0.1))
-  } else if let ftime = freq.time, next.state.relTime - ftime < 1.0 {
+  } else if let ftime = freq.time, next.state.relTime - ftime.timeIntervalSince1970 < 1.0 {
     goodness = min(1.0, max(0.0, a + b + 0.1))
   } else {
     goodness = 0.0
