@@ -60,17 +60,16 @@ func match(obs: Observable<(State,Gravity)>) -> Observable<ExternalState> {
   return obs
     .withLatestFrom(freqStab) { a, b in (a.0, (a.1, b.0, b.1)) }
     .scan(ExternalState.initial(), accumulator: scan)
-//    .multicast(PublishSubject.init) { Observable.from([
-//        // take until distance + 1
-//        $0.takeWhile { (state: ExternalState) -> Bool in state.distance < 400.0 },
-//        $0.take(1)
-////          .map { (it: ExternalState) -> ExternalState in
-////          var copy = it
-////          copy.distance = 400
-////          return copy
-////        }
-//      ]).concat()
-//    }
+    .multicast(PublishSubject.init) { Observable.from([
+        // take until distance + 1
+        $0.takeWhile { (state: ExternalState) -> Bool in state.distance < 400.0 },
+        $0.take(1).map { (it: ExternalState) -> ExternalState in
+          var copy = it
+          copy.distance = 400
+          return copy
+        }
+      ]).concat()
+    }
 
 }
 
